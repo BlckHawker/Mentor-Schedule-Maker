@@ -9,5 +9,5 @@
 - [ ] Load mentor objects from json file
 - [ ] Load mentor object from when2meets
 - [ ] Generate pdf of schedule mentor schedule
-- [ ] Fix line 21 in Block.tsx
+- [x] Fix line 21 in Block.tsx
 - [ ] get mentor.json loading to work, so error checking can be done

@@ -67,7 +67,7 @@ const CreateMentor = () => {
         .flatMap((b) => b)
         .every((b) => b === false)
     ) {
-      //! this line is being reached even though there are buttons that are green.
+      //! this line is being reached even though there are buttons that are green. This may be bc of the the way isActive is being set in Block.tsx
       setWarningText("A mentor cannot have blank availability");
       return;
     }
