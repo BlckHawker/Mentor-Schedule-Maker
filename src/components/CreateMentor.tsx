@@ -1,9 +1,11 @@
 "use client";
 import Day from "@/components/Day";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Mentors from "@/json/Mentors.json";
 const CreateMentor = () => {
   const [warningText, setWarningText] = useState("");
   const [mentorName, setMentorName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const availability = {
     Monday: [false, false, false, false, false, false, false, false],
     Tuesday: [false, false, false, false, false, false, false, false],
@@ -11,6 +13,21 @@ const CreateMentor = () => {
     Thursday: [false, false, false, false, false, false, false, false],
     Friday: [false, false, false, false, false, false, false, false],
   };
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true);
+      console.log(Mentors);
+      //! get loading to work, so error checking can be done
+    //   const response = await fetch("@/json/mentors.json");
+    //   console.log(response);
+      setIsLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
   return (
     <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center" }}>
       <label>Mentor Name: </label>
@@ -29,20 +46,24 @@ const CreateMentor = () => {
 
   function buttonClick() {
     //if name is blank, invalid
-    if(mentorName === "") {
-        setWarningText('Mentor name is required');
-        return;
+    if (mentorName === "") {
+      setWarningText("Mentor name is required");
+      return;
     }
     //if availability is complexly blank, invalid
-    if(Object.values(availability).flatMap(b => b).every(b => b === false)) {
-        setWarningText('Invalid Availability: No schedules were given');
-        return;
+    if (
+      Object.values(availability)
+        .flatMap((b) => b)
+        .every((b) => b === false)
+    ) {
+      setWarningText("Invalid Availability: No schedules were given");
+      return;
     }
     setWarningText(`Created new mentor: ${mentorName}`);
   }
 
   function mentorNameChange(e: React.FormEvent<HTMLInputElement>) {
-    setMentorName(e.currentTarget.value)
+    setMentorName(e.currentTarget.value);
   }
 };
 

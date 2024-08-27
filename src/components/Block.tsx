@@ -13,7 +13,6 @@ const Block = (props: Props) => {
     <div style={{display: "flex", gap: "10px", alignItems: "center" } }>
       <p>{props.time}</p>
       <button style={{backgroundColor: `${isActive ? "green" : "white"}`, width: "75px", height: "35px" } } onClick={() => buttonClick()}></button>
-      {/* <p>{"" + props.availability[props.index]}</p> */}
     </div>
   );
 

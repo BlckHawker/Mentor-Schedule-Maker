@@ -1,11 +1,13 @@
 - [ ] generate schedules based on mentor's availability
     - [ ] create Mentor class
-        - [ ] Availability
-        - [ ] Name
-        - [ ] Constructor with and availability (default availability will be not available at all)
+        - [x] Availability
+        - [x] Name
+        - [x] Constructor with and availability (default availability will be not available at all)
         - [ ] Method: edit mentor availability
 - [ ] Manually Add a mentor with availability
 - [ ] Save mentor objects as json file
 - [ ] Load mentor objects from json file
 - [ ] Load mentor object from when2meets
 - [ ] Generate pdf of schedule mentor schedule
+- [ ] Fix line 21 in Block.tsx
+- [ ] get mentor.json loading to work, so error checking can be done
