@@ -1,5 +1,5 @@
 // Used to make/edit a mentor's availability
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Props {
     time: string;
@@ -9,6 +9,10 @@ interface Props {
 
 const Block = (props: Props) => {
   const [isActive, setIsActive] = useState(false);
+  useEffect(() => {
+    console.log("is active use effect: " + isActive)
+    props.availability[props.index] = isActive;
+  }, [isActive]);
   return (
     <div style={{display: "flex", gap: "10px", alignItems: "center" } }>
       <p>{props.time}</p>
@@ -18,7 +22,6 @@ const Block = (props: Props) => {
 
   function buttonClick() {
     setIsActive(active => !active);
-    props.availability[props.index] = !isActive; //! this is a jank solution and should be changed immediately
   }
 };
 
