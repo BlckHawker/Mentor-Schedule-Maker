@@ -16,7 +16,7 @@ const Block = (props: Props) => {
   return (
     <div style={{display: "flex", gap: "10px", alignItems: "center" } }>
       <p>{props.time}</p>
-      <button style={{backgroundColor: `${isActive ? "green" : "white"}`, width: "75px", height: "35px" } } onClick={() => buttonClick()}></button>
+      <button style={{backgroundColor: `${isActive ? "green" : "gray"}`, width: "75px", height: "35px" } } onClick={() => buttonClick()}></button>
     </div>
   );
 

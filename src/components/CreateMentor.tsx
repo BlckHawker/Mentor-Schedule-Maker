@@ -14,7 +14,6 @@ const CreateMentor = () => {
     "Friday": [false, false, false, false, false, false, false, false],
   };
   useEffect(() => {
-    console.log(savedMentors)
     if(savedMentors !== undefined) {
       console.log('updating local storage')
       localStorage.setItem("mentors", JSON.stringify(savedMentors))
@@ -35,6 +34,7 @@ const CreateMentor = () => {
     }
     fetchData();
   }, []);
+
 
   if (isLoading) {
     return <div>Loading...</div>;
