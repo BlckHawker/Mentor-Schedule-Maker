@@ -5,9 +5,8 @@
         - [x] Constructor with and availability (default availability will be not available at all)
         - [ ] Method: edit mentor availability
 - [ ] Manually Add a mentor with availability
-- [ ] Save mentor objects as json file
-- [ ] Load mentor objects from json file
-- [ ] Load mentor object from when2meets
+    - [ ] fix a bug where availability is said to not be there, but buttons are green
+- [ ] Save mentor objects in local storage
+- [ ] Load mentor objects from local storage
+- [ ] Load mentor objects from when2meets
 - [ ] Generate pdf of schedule mentor schedule
-- [x] Fix line 21 in Block.tsx
-- [ ] get mentor.json loading to work, so error checking can be done
