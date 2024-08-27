@@ -3,6 +3,8 @@ import { useState } from "react";
 
 interface Props {
     time: string;
+    availability: boolean[];
+    index: number;
 }
 
 const Block = (props: Props) => {
@@ -10,9 +12,15 @@ const Block = (props: Props) => {
   return (
     <div style={{display: "flex", gap: "10px", alignItems: "center" } }>
       <p>{props.time}</p>
-      <button style={{backgroundColor: `${isActive ? "green" : "white"}`, width: "75px", height: "35px" } } onClick={() => setIsActive(active => !active)}></button>
+      <button style={{backgroundColor: `${isActive ? "green" : "white"}`, width: "75px", height: "35px" } } onClick={() => buttonClick()}></button>
+      {/* <p>{"" + props.availability[props.index]}</p> */}
     </div>
   );
+
+  function buttonClick() {
+    setIsActive(active => !active);
+    props.availability[props.index] = !isActive; //! this is a jank solution and should be changed immediately
+  }
 };
 
 export default Block;
