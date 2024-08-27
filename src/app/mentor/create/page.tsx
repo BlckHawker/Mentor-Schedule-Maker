@@ -7,8 +7,6 @@ export default function MentorCreatePage() {
   return (
       <div>
         <h1>Mentor Create Page</h1>
-        <label>Mentor Name: </label>
-        <input type="text"></input>
         <CreateMentor></CreateMentor>
       </div>
   );
