@@ -9,4 +9,9 @@
 - [ ] Save mentor objects in local storage
 - [ ] Load mentor objects from local storage
 - [ ] Load mentor objects from when2meets
+- [ ] View mentors' availability
+- [ ] Delete a mentor
+- [ ] Edit
+    - [ ] A mentor's availability
+    - [ ] A mentor's name
 - [ ] Generate pdf of schedule mentor schedule
