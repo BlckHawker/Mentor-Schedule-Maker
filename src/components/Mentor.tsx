@@ -1,11 +1,7 @@
 "use client";
-import { useState, useEffect } from "react";
+import { MentorInterface } from "@/app/interface/Mentor";
 import Row from "@/components/Row"
-interface Props {
-    name: string
-    availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; };
-}
-const Mentor = (props: Props) => {
+const Mentor = (props: MentorInterface) => {
     return (
         <div>
             <p>{`${props.name}'s Availability`}</p>
