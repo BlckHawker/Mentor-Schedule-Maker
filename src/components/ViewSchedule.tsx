@@ -1,6 +1,7 @@
 "use client";
 import { Schedule } from "@/app/interface/Schedule";
 import { MentorInterface } from "@/app/interface/Mentor";
+import { Day } from "@/app/interface/Day"
 import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 
@@ -28,7 +29,7 @@ const ViewSchedule = () => {
     return (
         <div>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
-            {possibleSchedules?.filter((_, ix) => ix === 49000).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
+            {possibleSchedules?.filter((_, ix) => ix === 100).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
         </div>
     );
 
@@ -39,9 +40,13 @@ const ViewSchedule = () => {
         }
 
         //get all of the possible shift (one mentor) for each block
-        const mondayPossibilities = getDayShift("Monday");
+        let mondayPossibilities = getDayShifts("Monday");
+        const fullMondayShifts = getFullDayShifts(mondayPossibilities);
+        if(fullMondayShifts.length !== 0) {
+            mondayPossibilities = fullMondayShifts;
+        }
 
-        //this syntax is also a lie
+        //this syntax is a lie
         const schedules = mondayPossibilities?.map((possibility: string[]) => ({
             "Monday": possibility,
             "Tuesday": {
@@ -85,14 +90,14 @@ const ViewSchedule = () => {
                 "5": []
             }
         }));
-        
+
         console.log(schedules);
         setPossibleSchedules(schedules);
         console.log("click");
     }
 
     //get all the shifts for a specific day
-    function getDayShift(specifiedDay: string) {
+    function getDayShifts(specifiedDay: string) {
         if (savedMentors === undefined) {
             console.log("There was an error");
             return;
@@ -141,7 +146,7 @@ const ViewSchedule = () => {
                                             '4': [allAvailableMentors["4"][four]],
                                             '5': [allAvailableMentors["5"][five]],
                                         }
-                                        console.log(Object.values(obj).map(name => name).join(", "));
+                                        //console.log(Object.values(obj).map(name => name).join(", "));
                                         allDayPossibilities.push(obj);
                                     }
                                 }
@@ -151,11 +156,6 @@ const ViewSchedule = () => {
                 }
             }
         }
-
-        //update the list of possible schedules
-        console.log(allDayPossibilities);
-
-
         return allDayPossibilities;
     }
 
@@ -179,6 +179,37 @@ const ViewSchedule = () => {
         });
 
         return shifts;
+    }
+
+    //returns an array of a day's schedule where every shift if filled (no "Nones")
+    //assumes that there is one only one mentor on each shift
+    function getFullDayShifts(allDayShifts: {
+        "10": string[],
+        "11": string[],
+        "12": string[],
+        "1": string[],
+        "2": string[],
+        "3": string[],
+        "4": string[],
+        "5": string[]
+    }[]) {
+
+        const filteredShifts = allDayShifts.filter((possibility: {
+            "10": string[],
+            "11": string[],
+            "12": string[],
+            "1": string[],
+            "2": string[],
+            "3": string[],
+            "4": string[],
+            "5": string[]
+        }) => {
+            const names = Object.values(possibility).map(arr => arr[0]);
+            return !names.includes("None");
+        });
+
+        return filteredShifts;
+
     }
 }
 

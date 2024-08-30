@@ -4,7 +4,6 @@ import { Schedule } from "@/app/interface/Schedule";
 
 const IndividualSchedule = (props: Schedule) => {
     //assumes there is only one person on shift
-    console.log(props);
     return (
         <div>
             <table>
