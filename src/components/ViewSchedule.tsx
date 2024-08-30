@@ -47,9 +47,11 @@ const ViewSchedule = () => {
         }
 
         //this syntax is a lie
-        const schedules = mondayPossibilities?.map((possibility: string[]) => ({
-            "Monday": possibility,
-            "Tuesday": {
+        const schedules = [];
+        for(let monday = 0; monday < mondayPossibilities.length; monday++) {
+            schedules.push({
+                "Monday": mondayPossibilities[monday],
+                "Tuesday": {
                 "10": [],
                 "11": [],
                 "12": [],
@@ -89,8 +91,8 @@ const ViewSchedule = () => {
                 "4": [],
                 "5": []
             }
-        }));
-
+            });
+        } 
         console.log(schedules);
         setPossibleSchedules(schedules);
         console.log("click");
@@ -136,7 +138,7 @@ const ViewSchedule = () => {
                             for (let three = 0; three < allAvailableMentors["3"].length; three++) {
                                 for (let four = 0; four < allAvailableMentors["4"].length; four++) {
                                     for (let five = 0; five < allAvailableMentors["5"].length; five++) {
-                                        const obj = {
+                                        const day : Day = {
                                             '10': [allAvailableMentors["10"][ten]],
                                             '11': [allAvailableMentors["11"][eleven]],
                                             '12': [allAvailableMentors["12"][twelve]],
@@ -145,9 +147,9 @@ const ViewSchedule = () => {
                                             '3': [allAvailableMentors["3"][three]],
                                             '4': [allAvailableMentors["4"][four]],
                                             '5': [allAvailableMentors["5"][five]],
-                                        }
+                                        } 
                                         //console.log(Object.values(obj).map(name => name).join(", "));
-                                        allDayPossibilities.push(obj);
+                                        allDayPossibilities.push(day);
                                     }
                                 }
                             }
@@ -183,27 +185,9 @@ const ViewSchedule = () => {
 
     //returns an array of a day's schedule where every shift if filled (no "Nones")
     //assumes that there is one only one mentor on each shift
-    function getFullDayShifts(allDayShifts: {
-        "10": string[],
-        "11": string[],
-        "12": string[],
-        "1": string[],
-        "2": string[],
-        "3": string[],
-        "4": string[],
-        "5": string[]
-    }[]) {
+    function getFullDayShifts(allDayShifts: Day[]) {
 
-        const filteredShifts = allDayShifts.filter((possibility: {
-            "10": string[],
-            "11": string[],
-            "12": string[],
-            "1": string[],
-            "2": string[],
-            "3": string[],
-            "4": string[],
-            "5": string[]
-        }) => {
+        const filteredShifts = allDayShifts.filter((possibility: Day) => {
             const names = Object.values(possibility).map(arr => arr[0]);
             return !names.includes("None");
         });
