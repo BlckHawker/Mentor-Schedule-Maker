@@ -18,7 +18,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>10am</td>
                     <td>{props.Monday["10"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["10"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -26,7 +26,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>11am</td>
                     <td>{props.Monday["11"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["11"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -34,7 +34,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>12pm</td>
                     <td>{props.Monday["12"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["12"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -42,7 +42,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>1pm</td>
                     <td>{props.Monday["1"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["1"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -50,7 +50,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>2pm</td>
                     <td>{props.Monday["2"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["2"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -58,7 +58,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>3pm</td>
                     <td>{props.Monday["3"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["3"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -66,7 +66,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>4pm</td>
                     <td>{props.Monday["4"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["4"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
@@ -74,7 +74,7 @@ const IndividualSchedule = (props: Schedule) => {
                 <tr>
                     <td>5pm</td>
                     <td>{props.Monday["5"][0]}</td>
-                    <td>unfinished</td>
+                    <td>{props.Tuesday["5"][0]}</td>
                     <td>unfinished</td>
                     <td>unfinished</td>
                     <td>unfinished</td>

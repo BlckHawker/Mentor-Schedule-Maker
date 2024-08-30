@@ -6,6 +6,16 @@ import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 
 const ViewSchedule = () => {
+    const emptyDay = {
+        "10": [],
+        "11": [],
+        "12": [],
+        "1": [],
+        "2": [],
+        "3": [],
+        "4": [],
+        "5": []
+    }
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
@@ -42,57 +52,33 @@ const ViewSchedule = () => {
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
         const fullMondayShifts = getFullDayShifts(mondayPossibilities);
-        if(fullMondayShifts.length !== 0) {
+        if (fullMondayShifts.length !== 0) {
             mondayPossibilities = fullMondayShifts;
         }
 
+        let tuesdayPossibilities = getDayShifts("Tuesday");
+        const fullTuesdayShifts = getFullDayShifts(tuesdayPossibilities);
+        if (fullTuesdayShifts.length !== 0) {
+            tuesdayPossibilities = fullTuesdayShifts;
+        }
+
+        console.log(mondayPossibilities);
+        console.log(tuesdayPossibilities);
+
+
         //this syntax is a lie
         const schedules = [];
-        for(let monday = 0; monday < mondayPossibilities.length; monday++) {
-            schedules.push({
-                "Monday": mondayPossibilities[monday],
-                "Tuesday": {
-                "10": [],
-                "11": [],
-                "12": [],
-                "1": [],
-                "2": [],
-                "3": [],
-                "4": [],
-                "5": []
-            },
-            "Wednesday": {
-                "10": [],
-                "11": [],
-                "12": [],
-                "1": [],
-                "2": [],
-                "3": [],
-                "4": [],
-                "5": []
-            },
-            "Thursday": {
-                "10": [],
-                "11": [],
-                "12": [],
-                "1": [],
-                "2": [],
-                "3": [],
-                "4": [],
-                "5": []
-            },
-            "Friday": {
-                "10": [],
-                "11": [],
-                "12": [],
-                "1": [],
-                "2": [],
-                "3": [],
-                "4": [],
-                "5": []
+        for (let monday = 0; monday < mondayPossibilities.length; monday++) {
+            for (let tuesday = 0; tuesday < tuesdayPossibilities.length; tuesday++) {
+                schedules.push({
+                    "Monday": mondayPossibilities[monday],
+                    "Tuesday": tuesdayPossibilities[tuesday],
+                    "Wednesday": emptyDay,
+                    "Thursday": emptyDay,
+                    "Friday": emptyDay
+                });
             }
-            });
-        } 
+        }
         console.log(schedules);
         setPossibleSchedules(schedules);
         console.log("click");
@@ -118,8 +104,6 @@ const ViewSchedule = () => {
             "5": getAllTimeShifts(specifiedDay, 7)
         };
 
-        console.log(allAvailableMentors);
-
         //all of the possible ways to configure a day (assumes having 0-1 mentors per shift)
         const allDayPossibilities = [];
 
@@ -138,7 +122,7 @@ const ViewSchedule = () => {
                             for (let three = 0; three < allAvailableMentors["3"].length; three++) {
                                 for (let four = 0; four < allAvailableMentors["4"].length; four++) {
                                     for (let five = 0; five < allAvailableMentors["5"].length; five++) {
-                                        const day : Day = {
+                                        const day: Day = {
                                             '10': [allAvailableMentors["10"][ten]],
                                             '11': [allAvailableMentors["11"][eleven]],
                                             '12': [allAvailableMentors["12"][twelve]],
@@ -147,8 +131,7 @@ const ViewSchedule = () => {
                                             '3': [allAvailableMentors["3"][three]],
                                             '4': [allAvailableMentors["4"][four]],
                                             '5': [allAvailableMentors["5"][five]],
-                                        } 
-                                        //console.log(Object.values(obj).map(name => name).join(", "));
+                                        }
                                         allDayPossibilities.push(day);
                                     }
                                 }
