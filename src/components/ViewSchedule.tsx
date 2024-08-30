@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 
 const ViewSchedule = () => {
+    const maxShifts = 4;
     const emptyDay = {
         "10": [],
         "11": [],
@@ -62,21 +63,38 @@ const ViewSchedule = () => {
             tuesdayPossibilities = fullTuesdayShifts;
         }
 
+        let wednesdayPossibilities = getDayShifts("Wednesday");
+        const fullWednesdayShifts = getFullDayShifts(wednesdayPossibilities);
+        if (fullWednesdayShifts.length !== 0) {
+            wednesdayPossibilities = fullWednesdayShifts;
+        }
+
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
+        console.log(wednesdayPossibilities);
 
-
-        //this syntax is a lie
+        //the syntax is a lie
         const schedules = [];
         for (let monday = 0; monday < mondayPossibilities.length; monday++) {
+            const mondayNames = Object.values(mondayPossibilities[monday]).flatMap(arr => arr) as unknown as string[];
+            if(exceedHourLimit(mondayNames)) {
+                continue;
+            }
+            //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
             for (let tuesday = 0; tuesday < tuesdayPossibilities.length; tuesday++) {
-                schedules.push({
+                const tuesdayNames = Object.values(tuesdayPossibilities[tuesday]).flatMap(arr => arr) as unknown as string[];
+                if(exceedHourLimit(mondayNames.concat(tuesdayNames))) {
+                    continue;
+                }
+                const schedule = {
                     "Monday": mondayPossibilities[monday],
                     "Tuesday": tuesdayPossibilities[tuesday],
                     "Wednesday": emptyDay,
                     "Thursday": emptyDay,
                     "Friday": emptyDay
-                });
+                };
+
+                schedules.push(schedule);
             }
         }
         console.log(schedules);
@@ -167,9 +185,8 @@ const ViewSchedule = () => {
     }
 
     //returns an array of a day's schedule where every shift if filled (no "Nones")
-    //assumes that there is one only one mentor on each shift
     function getFullDayShifts(allDayShifts: Day[]) {
-
+        //assumes that there is one only one mentor on each shift
         const filteredShifts = allDayShifts.filter((possibility: Day) => {
             const names = Object.values(possibility).map(arr => arr[0]);
             return !names.includes("None");
@@ -177,6 +194,28 @@ const ViewSchedule = () => {
 
         return filteredShifts;
 
+    }
+
+    //Tells how many times each name has occurred in an array
+    //assumes there's only one person in the list
+    function itemCounter(arr: string[], value: string) {
+        return arr.filter((x) => x === value).length;
+    };
+
+    function removeDuplicates(arr: string[]) {
+        return arr.filter((item,
+            index) => arr.indexOf(item) === index);
+    }
+
+    function exceedHourLimit(people: string[]) {
+        //assumes there is only one mentor on shift
+        const nonduplicatedPeople = removeDuplicates(people);
+        const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
+        //console.log(people);
+        //console.log(nonduplicatedPeople);
+        //console.log(peopleCount);
+        //console.log(peopleCount.some(num => num > maxShifts));
+        return peopleCount.some(num => num > maxShifts);
     }
 }
 
