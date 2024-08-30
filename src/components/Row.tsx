@@ -4,7 +4,6 @@ interface Props {
     row: boolean[]
 }
 const Row = (props: Props) => {
-    console.log(props);
     return (
         <tr>
             <td>{props.day}</td>

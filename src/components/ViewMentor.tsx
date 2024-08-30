@@ -12,7 +12,6 @@ const ViewClient = () => {
                 str = "[]";
             }
             const localStorageMentors = JSON.parse(str);
-            console.log(localStorageMentors);
             setSavedMentors(localStorageMentors);
             setIsLoading(false);
         }
@@ -28,9 +27,33 @@ const ViewClient = () => {
     return (
         <div>
             <h2>Mentors</h2>
+            <button onClick={() => generateSchedules()}>Generate schedules</button>
             {savedMentors.map(m => <Mentor name={m.name} availability={m.availability}></Mentor>)}
         </div>
     );
+
+    function generateSchedules() 
+    {
+        if(savedMentors === undefined) {
+            console.log("There was an error");
+            return;
+        }
+        //10am - 11am on Monday
+        //get all of the possible shift (one mentor)
+
+        //! This is terrible
+        const tenToElevenMonday: { name: string; availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; }; }[] = [[] as unknown as { name: string; availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; }; } ] ;
+
+        savedMentors.forEach(m => {
+            if(m.availability.Monday[0])
+                tenToElevenMonday.push(m);
+            
+        });
+
+        console.log(tenToElevenMonday);
+
+        
+    }
 }
 
 export default ViewClient;

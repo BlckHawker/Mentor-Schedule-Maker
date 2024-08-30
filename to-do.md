@@ -15,3 +15,4 @@
     - [ ] A mentor's availability
     - [ ] A mentor's name
 - [ ] Generate pdf of schedule mentor schedule
+- Refactor useState of `{ name: string; availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; }; }[]` to be a interface or class

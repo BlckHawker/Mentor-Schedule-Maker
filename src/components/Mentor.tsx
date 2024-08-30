@@ -6,7 +6,6 @@ interface Props {
     availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; };
 }
 const Mentor = (props: Props) => {
-    console.log(props.availability);
     return (
         <div>
             <p>{`${props.name}'s Availability`}</p>
