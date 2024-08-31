@@ -62,11 +62,17 @@ const ViewSchedule = () => {
         if (fullMondayShifts.length !== 0) {
             mondayPossibilities = fullMondayShifts;
         }
+        else {
+            console.log("M");
+        }
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
         const fullTuesdayShifts = getFullDayShifts(tuesdayPossibilities);
         if (fullTuesdayShifts.length !== 0) {
             tuesdayPossibilities = fullTuesdayShifts;
+        }
+        else {
+            console.log("T");
         }
 
         let wednesdayPossibilities = getDayShifts("Wednesday");
@@ -74,11 +80,19 @@ const ViewSchedule = () => {
         if (fullWednesdayShifts.length !== 0) {
             wednesdayPossibilities = fullWednesdayShifts;
         }
-
+        else {
+            console.log("W");
+        }
         let thursdayPossibilities = getDayShifts("Thursday");
         const fullThursdayShifts = getFullDayShifts(thursdayPossibilities);
         if (fullThursdayShifts.length !== 0) {
             thursdayPossibilities = fullThursdayShifts;
+        }
+        else {
+
+            console.log("H");
+            console.log(thursdayPossibilities);
+            console.log(thursdayPossibilities[0]);
         }
 
         let fridayPossibilities = getDayShifts("Friday");
@@ -86,6 +100,9 @@ const ViewSchedule = () => {
         const fullFridayShifts = getFullDayShifts(fridayPossibilities);
         if (fullFridayShifts.length !== 0) {
             fridayPossibilities = fullFridayShifts;
+        }
+        else {
+            console.log("F");
         }
 
 
@@ -95,6 +112,12 @@ const ViewSchedule = () => {
         console.log(thursdayPossibilities);
         console.log(fridayPossibilities);
 
+        for (let thursday = 0; thursday < thursdayPossibilities.length; thursday++) {
+            const thursdayNames = Object.values(thursdayPossibilities[thursday]).flatMap(arr => arr) as unknown as string[];
+            if (exceedHourLimit(thursdayNames)) {
+                continue;
+            }
+        }
 
 
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
@@ -102,48 +125,48 @@ const ViewSchedule = () => {
         console.log(`Expecting ${expectedResultNumber} results`)
         //the syntax is a lie
         const schedules = [];
-        for (let monday = 0; monday < mondayPossibilities.length; monday++) {
-            const mondayNames = Object.values(mondayPossibilities[monday]).flatMap(arr => arr) as unknown as string[];
-            if (exceedHourLimit(mondayNames)) {
-                continue;
-            }
-            //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
-            for (let tuesday = 0; tuesday < tuesdayPossibilities.length; tuesday++) {
-                const tuesdayNames = Object.values(tuesdayPossibilities[tuesday]).flatMap(arr => arr) as unknown as string[];
-                if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
-                    continue;
-                }
-                for (let wednesday = 0; wednesday < wednesdayPossibilities.length; wednesday++) {
-                    const wednesdayNames = Object.values(wednesdayPossibilities[wednesday]).flatMap(arr => arr) as unknown as string[];
-                    if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
-                        continue;
-                    }
+        // for (let monday = 0; monday < mondayPossibilities.length; monday++) {
+        //     const mondayNames = Object.values(mondayPossibilities[monday]).flatMap(arr => arr) as unknown as string[];
+        //     if (exceedHourLimit(mondayNames)) {
+        //         continue;
+        //     }
+        //     //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
+        //     for (let tuesday = 0; tuesday < tuesdayPossibilities.length; tuesday++) {
+        //         const tuesdayNames = Object.values(tuesdayPossibilities[tuesday]).flatMap(arr => arr) as unknown as string[];
+        //         if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
+        //             continue;
+        //         }
+        //         for (let wednesday = 0; wednesday < wednesdayPossibilities.length; wednesday++) {
+        //             const wednesdayNames = Object.values(wednesdayPossibilities[wednesday]).flatMap(arr => arr) as unknown as string[];
+        //             if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
+        //                 continue;
+        //             }
 
-                    for (let thursday = 0; thursday < thursdayPossibilities.length; thursday++) {
-                        const thursdayNames = Object.values(thursdayPossibilities[thursday]).flatMap(arr => arr) as unknown as string[];
-                        if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
-                            continue;
-                        }
+        //             for (let thursday = 0; thursday < thursdayPossibilities.length; thursday++) {
+        //                 const thursdayNames = Object.values(thursdayPossibilities[thursday]).flatMap(arr => arr) as unknown as string[];
+        //                 if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
+        //                     continue;
+        //                 }
 
-                        for (let friday = 0; friday < fridayPossibilities.length; friday++) {
-                            const fridayNames = Object.values(fridayPossibilities[friday]).flatMap(arr => arr) as unknown as string[];
-                            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
-                                continue;
-                            }
+        //                 for (let friday = 0; friday < fridayPossibilities.length; friday++) {
+        //                     const fridayNames = Object.values(fridayPossibilities[friday]).flatMap(arr => arr) as unknown as string[];
+        //                     if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
+        //                         continue;
+        //                     }
 
-                            const schedule = {
-                                "Monday": mondayPossibilities[monday],
-                                "Tuesday": tuesdayPossibilities[tuesday],
-                                "Wednesday": wednesdayPossibilities[wednesday],
-                                "Thursday": thursdayPossibilities[thursday],
-                                "Friday": fridayPossibilities[friday]
-                            };
-                            schedules.push(schedule);
-                        }
-                    }
-                }
-            }
-        }
+        //                     const schedule = {
+        //                         "Monday": mondayPossibilities[monday],
+        //                         "Tuesday": tuesdayPossibilities[tuesday],
+        //                         "Wednesday": wednesdayPossibilities[wednesday],
+        //                         "Thursday": thursdayPossibilities[thursday],
+        //                         "Friday": fridayPossibilities[friday]
+        //                     };
+        //                     schedules.push(schedule);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
         const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
         const hours = Math.floor(elapsedSeconds / 3600);
         const minutes = Math.floor((elapsedSeconds % 3600) / 60);
@@ -219,10 +242,7 @@ const ViewSchedule = () => {
                 }
             }
         }
-
-        if(specifiedDay === "Friday") {
-            console.log("Friday", allDayPossibilities);
-        }
+        
         return allDayPossibilities;
     }
 
@@ -273,7 +293,7 @@ const ViewSchedule = () => {
 
     function exceedHourLimit(people: string[], log: boolean = false) {
         //assumes there is only one mentor on shift
-        const nonduplicatedPeople = removeDuplicates(people);
+        const nonduplicatedPeople = removeDuplicates(people).filter(name => name != "None");
         const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
         if (log) {
             console.log(people);
