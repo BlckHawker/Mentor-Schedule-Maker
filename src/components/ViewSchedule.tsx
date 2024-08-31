@@ -50,6 +50,8 @@ const ViewSchedule = () => {
             return;
         }
 
+        setGeneratingSchedules(true);
+
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
         const fullMondayShifts = getFullDayShifts(mondayPossibilities);
@@ -73,31 +75,39 @@ const ViewSchedule = () => {
         console.log(tuesdayPossibilities);
         console.log(wednesdayPossibilities);
 
+        console.log(`Expecting ${mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length} results`)
         //the syntax is a lie
         const schedules = [];
         for (let monday = 0; monday < mondayPossibilities.length; monday++) {
             const mondayNames = Object.values(mondayPossibilities[monday]).flatMap(arr => arr) as unknown as string[];
-            if(exceedHourLimit(mondayNames)) {
+            if (exceedHourLimit(mondayNames)) {
                 continue;
             }
             //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
             for (let tuesday = 0; tuesday < tuesdayPossibilities.length; tuesday++) {
                 const tuesdayNames = Object.values(tuesdayPossibilities[tuesday]).flatMap(arr => arr) as unknown as string[];
-                if(exceedHourLimit(mondayNames.concat(tuesdayNames))) {
+                if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
                     continue;
                 }
-                const schedule = {
-                    "Monday": mondayPossibilities[monday],
-                    "Tuesday": tuesdayPossibilities[tuesday],
-                    "Wednesday": emptyDay,
-                    "Thursday": emptyDay,
-                    "Friday": emptyDay
-                };
+                for (let wednesday = 0; wednesday < wednesdayPossibilities.length; wednesday++) {
+                    const wednesdayNames = Object.values(wednesdayPossibilities[wednesday]).flatMap(arr => arr) as unknown as string[];
+                    if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
+                        continue;
+                    }
+                    const schedule = {
+                        "Monday": mondayPossibilities[monday],
+                        "Tuesday": tuesdayPossibilities[tuesday],
+                        "Wednesday": wednesdayPossibilities[wednesday],
+                        "Thursday": emptyDay,
+                        "Friday": emptyDay
+                    };
 
-                schedules.push(schedule);
+                    schedules.push(schedule);
+                }
             }
         }
         console.log(schedules);
+        setGeneratingSchedules(false);
         setPossibleSchedules(schedules);
         console.log("click");
     }
@@ -159,6 +169,7 @@ const ViewSchedule = () => {
                 }
             }
         }
+
         return allDayPossibilities;
     }
 
@@ -207,14 +218,16 @@ const ViewSchedule = () => {
             index) => arr.indexOf(item) === index);
     }
 
-    function exceedHourLimit(people: string[]) {
+    function exceedHourLimit(people: string[], log: boolean = false) {
         //assumes there is only one mentor on shift
         const nonduplicatedPeople = removeDuplicates(people);
         const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
-        //console.log(people);
-        //console.log(nonduplicatedPeople);
-        //console.log(peopleCount);
-        //console.log(peopleCount.some(num => num > maxShifts));
+        if (log) {
+            console.log(people);
+            console.log(nonduplicatedPeople);
+            console.log(peopleCount);
+            console.log(peopleCount.some(num => num > maxShifts));
+        }
         return peopleCount.some(num => num > maxShifts);
     }
 }
