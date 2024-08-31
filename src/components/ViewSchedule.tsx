@@ -41,9 +41,9 @@ const ViewSchedule = () => {
     }
     return (
         <div>
-            <button onClick={() => pressStopwatchButton()}>Stopwatch</button>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
-            {possibleSchedules?.filter((_, ix) => ix === 100).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
+            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
+            <h2>Filters</h2>
         </div>
     );
 
@@ -58,53 +58,19 @@ const ViewSchedule = () => {
 
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
-        const fullMondayShifts = getFullDayShifts(mondayPossibilities);
-        if (fullMondayShifts.length !== 0) {
-            mondayPossibilities = fullMondayShifts;
-        }
-        else {
-            console.log("M");
-        }
+        mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
-        const fullTuesdayShifts = getFullDayShifts(tuesdayPossibilities);
-        if (fullTuesdayShifts.length !== 0) {
-            tuesdayPossibilities = fullTuesdayShifts;
-        }
-        else {
-            console.log("T");
-        }
+        tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
 
         let wednesdayPossibilities = getDayShifts("Wednesday");
-        const fullWednesdayShifts = getFullDayShifts(wednesdayPossibilities);
-        if (fullWednesdayShifts.length !== 0) {
-            wednesdayPossibilities = fullWednesdayShifts;
-        }
-        else {
-            console.log("W");
-        }
-        let thursdayPossibilities = getDayShifts("Thursday");
-        const fullThursdayShifts = getFullDayShifts(thursdayPossibilities);
-        if (fullThursdayShifts.length !== 0) {
-            thursdayPossibilities = fullThursdayShifts;
-        }
-        else {
+        wednesdayPossibilities = findLeastNoneShifts(wednesdayPossibilities);
 
-            console.log("H");
-            console.log(thursdayPossibilities);
-            console.log(thursdayPossibilities[0]);
-        }
+        let thursdayPossibilities = getDayShifts("Thursday");
+        thursdayPossibilities = findLeastNoneShifts(thursdayPossibilities);
 
         let fridayPossibilities = getDayShifts("Friday");
-        console.log(fridayPossibilities);
-        const fullFridayShifts = getFullDayShifts(fridayPossibilities);
-        if (fullFridayShifts.length !== 0) {
-            fridayPossibilities = fullFridayShifts;
-        }
-        else {
-            console.log("F");
-        }
-
+        fridayPossibilities = findLeastNoneShifts(fridayPossibilities);
 
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
@@ -112,54 +78,109 @@ const ViewSchedule = () => {
         console.log(thursdayPossibilities);
         console.log(fridayPossibilities);
 
-        for (let thursday = 0; thursday < thursdayPossibilities.length; thursday++) {
-            const thursdayNames = Object.values(thursdayPossibilities[thursday]).flatMap(arr => arr) as unknown as string[];
-            if (exceedHourLimit(thursdayNames)) {
-                continue;
-            }
-        }
-
 
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
 
-        console.log(`Expecting ${expectedResultNumber} results`)
+        console.log(`Estimated number of results is ${expectedResultNumber}`)
         //the syntax is a lie
         const schedules = [];
-        // for (let monday = 0; monday < mondayPossibilities.length; monday++) {
-        //     const mondayNames = Object.values(mondayPossibilities[monday]).flatMap(arr => arr) as unknown as string[];
+
+        //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
+        for (const mondayShift of mondayPossibilities) {
+            const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
+            if (exceedHourLimit(mondayNames)) {
+                continue;
+            }
+            //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
+            for (const tuesdayShift of tuesdayPossibilities) {
+                const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
+                if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
+                    continue;
+                }
+                for (const wednesdayShift of wednesdayPossibilities) {
+                    const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
+                    if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
+                        continue;
+                    }
+
+                    for (const thursdayShift of thursdayPossibilities) {
+                        const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
+                        if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
+                            continue;
+                        }
+                        for (const fridayShift of fridayPossibilities) {
+                            const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
+                            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
+                                continue;
+                            }
+                            const schedule = {
+                                "Monday": mondayShift,
+                                "Tuesday": tuesdayShift,
+                                "Wednesday": wednesdayShift,
+                                "Thursday": thursdayShift,
+                                "Friday": fridayShift
+                            };
+                            schedules.push(schedule);
+                            if (schedules.length >= 100) {
+                                break;
+                            }
+                        }
+
+                        if (schedules.length >= 100) {
+                            break;
+                        }
+                    }
+
+                    if (schedules.length >= 100) {
+                        break;
+                    }
+                }
+
+                if (schedules.length >= 100) {
+                    break;
+                }
+            }
+
+            if (schedules.length >= 100) {
+                break;
+            }
+        }
+
+        // for (const mondayShift of mondayPossibilities) {
+        //     const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
         //     if (exceedHourLimit(mondayNames)) {
         //         continue;
         //     }
         //     //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
-        //     for (let tuesday = 0; tuesday < tuesdayPossibilities.length; tuesday++) {
-        //         const tuesdayNames = Object.values(tuesdayPossibilities[tuesday]).flatMap(arr => arr) as unknown as string[];
+        //     for (const tuesdayShift of tuesdayPossibilities) {
+        //         const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
         //         if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
         //             continue;
         //         }
-        //         for (let wednesday = 0; wednesday < wednesdayPossibilities.length; wednesday++) {
-        //             const wednesdayNames = Object.values(wednesdayPossibilities[wednesday]).flatMap(arr => arr) as unknown as string[];
+        //         for (const wednesdayShift of wednesdayPossibilities) {
+        //             const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
         //             if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
         //                 continue;
         //             }
 
-        //             for (let thursday = 0; thursday < thursdayPossibilities.length; thursday++) {
-        //                 const thursdayNames = Object.values(thursdayPossibilities[thursday]).flatMap(arr => arr) as unknown as string[];
+        //             for (const thursdayShift of thursdayPossibilities) {
+        //                 const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
         //                 if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
         //                     continue;
         //                 }
 
-        //                 for (let friday = 0; friday < fridayPossibilities.length; friday++) {
-        //                     const fridayNames = Object.values(fridayPossibilities[friday]).flatMap(arr => arr) as unknown as string[];
+        //                 for (const fridayShift of fridayPossibilities) {
+        //                     const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
         //                     if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
         //                         continue;
         //                     }
 
         //                     const schedule = {
-        //                         "Monday": mondayPossibilities[monday],
-        //                         "Tuesday": tuesdayPossibilities[tuesday],
-        //                         "Wednesday": wednesdayPossibilities[wednesday],
-        //                         "Thursday": thursdayPossibilities[thursday],
-        //                         "Friday": fridayPossibilities[friday]
+        //                         "Monday": mondayShift,
+        //                         "Tuesday": tuesdayShift,
+        //                         "Wednesday": wednesdayShift,
+        //                         "Thursday": thursdayShift,
+        //                         "Friday": fridayShift
         //                     };
         //                     schedules.push(schedule);
         //                 }
@@ -167,6 +188,7 @@ const ViewSchedule = () => {
         //         }
         //     }
         // }
+
         const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
         const hours = Math.floor(elapsedSeconds / 3600);
         const minutes = Math.floor((elapsedSeconds % 3600) / 60);
@@ -179,7 +201,7 @@ const ViewSchedule = () => {
 
         // Return formatted time string
         console.log(`${paddedHours}:${paddedMinutes}:${paddedSeconds}`);
-        console.log(schedules);
+        console.log("result", schedules);
         setPossibleSchedules(schedules);
         console.log("click");
     }
@@ -215,23 +237,23 @@ const ViewSchedule = () => {
         }
 
         //! There has to be an easier way to do this
-        for (let ten = 0; ten < allAvailableMentors["10"].length; ten++) {
-            for (let eleven = 0; eleven < allAvailableMentors["11"].length; eleven++) {
-                for (let twelve = 0; twelve < allAvailableMentors["12"].length; twelve++) {
-                    for (let one = 0; one < allAvailableMentors["1"].length; one++) {
-                        for (let two = 0; two < allAvailableMentors["2"].length; two++) {
-                            for (let three = 0; three < allAvailableMentors["3"].length; three++) {
-                                for (let four = 0; four < allAvailableMentors["4"].length; four++) {
-                                    for (let five = 0; five < allAvailableMentors["5"].length; five++) {
+        for (const tenShift of allAvailableMentors["10"]) {
+            for (const elevenShift of allAvailableMentors["11"]) {
+                for (const twelveShift of allAvailableMentors["12"]) {
+                    for (const oneShift of allAvailableMentors["1"]) {
+                        for (const twoShift of allAvailableMentors["2"]) {
+                            for (const threeShift of allAvailableMentors["3"]) {
+                                for (const fourShift of allAvailableMentors["4"]) {
+                                    for (const fiveShift of allAvailableMentors["5"]) {
                                         const day: Day = {
-                                            '10': [allAvailableMentors["10"][ten]],
-                                            '11': [allAvailableMentors["11"][eleven]],
-                                            '12': [allAvailableMentors["12"][twelve]],
-                                            '1': [allAvailableMentors["1"][one]],
-                                            '2': [allAvailableMentors["2"][two]],
-                                            '3': [allAvailableMentors["3"][three]],
-                                            '4': [allAvailableMentors["4"][four]],
-                                            '5': [allAvailableMentors["5"][five]],
+                                            '10': [tenShift],
+                                            '11': [elevenShift],
+                                            '12': [twelveShift],
+                                            '1': [oneShift],
+                                            '2': [twoShift],
+                                            '3': [threeShift],
+                                            '4': [fourShift],
+                                            '5': [fiveShift],
                                         }
                                         allDayPossibilities.push(day);
                                     }
@@ -242,7 +264,7 @@ const ViewSchedule = () => {
                 }
             }
         }
-        
+
         return allDayPossibilities;
     }
 
@@ -266,18 +288,6 @@ const ViewSchedule = () => {
         });
 
         return shifts;
-    }
-
-    //returns an array of a day's schedule where every shift if filled (no "Nones")
-    function getFullDayShifts(allDayShifts: Day[]) {
-        //assumes that there is one only one mentor on each shift
-        const filteredShifts = allDayShifts.filter((possibility: Day) => {
-            const names = Object.values(possibility).map(arr => arr[0]);
-            return !names.includes("None");
-        });
-
-        return filteredShifts;
-
     }
 
     //Tells how many times each name has occurred in an array
@@ -304,30 +314,17 @@ const ViewSchedule = () => {
         return peopleCount.some(num => num > maxShifts);
     }
 
-    function pressStopwatchButton() {
-        if (!startStopwatch) {
-            console.log("starting stopwatch");
-            startTime = new Date().getTime(); // get the starting time by subtracting the elapsed paused time from the current time
-        }
+    //find the least amount of times None appears in a day
+    function findLeastNoneShifts(allDayShifts: Day[]) {
+        const noneShiftCount = allDayShifts.map((possibility: Day) => {
+            const names = Object.values(possibility).map(arr => arr[0]).filter(name => name === "None");
+            return names.length;
+        });
 
-        else {
-            console.log("ending stopwatch");
-            const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
-            const hours = Math.floor(elapsedSeconds / 3600);
-            const minutes = Math.floor((elapsedSeconds % 3600) / 60);
-            const secs = elapsedSeconds % 60;
+        const smallestNumber = Math.min(...noneShiftCount);
 
-            // Pad hours, minutes, and seconds with leading zeros if necessary
-            const paddedHours = String(hours).padStart(2, '0');
-            const paddedMinutes = String(minutes).padStart(2, '0');
-            const paddedSeconds = String(secs).padStart(2, '0');
-
-            // Return formatted time string
-            console.log(`${paddedHours}:${paddedMinutes}:${paddedSeconds}`);
-
-        }
-
-        startStopwatch = !startStopwatch;
+        const desiredShifts = allDayShifts.filter((_, ix) => noneShiftCount[ix] == smallestNumber);
+        return desiredShifts;
     }
 }
 
