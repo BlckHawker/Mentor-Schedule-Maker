@@ -17,6 +17,8 @@ const ViewSchedule = () => {
         "4": [],
         "5": []
     }
+    let startStopwatch = false;
+    let startTime: number;
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
@@ -39,6 +41,7 @@ const ViewSchedule = () => {
     }
     return (
         <div>
+            <button onClick={() => pressStopwatchButton()}>Stopwatch</button>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {possibleSchedules?.filter((_, ix) => ix === 100).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
         </div>
@@ -50,7 +53,8 @@ const ViewSchedule = () => {
             return;
         }
 
-        setGeneratingSchedules(true);
+        const startTime = new Date().getTime();
+
 
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
@@ -71,11 +75,31 @@ const ViewSchedule = () => {
             wednesdayPossibilities = fullWednesdayShifts;
         }
 
+        let thursdayPossibilities = getDayShifts("Thursday");
+        const fullThursdayShifts = getFullDayShifts(thursdayPossibilities);
+        if (fullThursdayShifts.length !== 0) {
+            thursdayPossibilities = fullThursdayShifts;
+        }
+
+        let fridayPossibilities = getDayShifts("Friday");
+        console.log(fridayPossibilities);
+        const fullFridayShifts = getFullDayShifts(fridayPossibilities);
+        if (fullFridayShifts.length !== 0) {
+            fridayPossibilities = fullFridayShifts;
+        }
+
+
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
         console.log(wednesdayPossibilities);
+        console.log(thursdayPossibilities);
+        console.log(fridayPossibilities);
 
-        console.log(`Expecting ${mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length} results`)
+
+
+        const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
+
+        console.log(`Expecting ${expectedResultNumber} results`)
         //the syntax is a lie
         const schedules = [];
         for (let monday = 0; monday < mondayPossibilities.length; monday++) {
@@ -94,20 +118,45 @@ const ViewSchedule = () => {
                     if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
                         continue;
                     }
-                    const schedule = {
-                        "Monday": mondayPossibilities[monday],
-                        "Tuesday": tuesdayPossibilities[tuesday],
-                        "Wednesday": wednesdayPossibilities[wednesday],
-                        "Thursday": emptyDay,
-                        "Friday": emptyDay
-                    };
 
-                    schedules.push(schedule);
+                    for (let thursday = 0; thursday < thursdayPossibilities.length; thursday++) {
+                        const thursdayNames = Object.values(thursdayPossibilities[thursday]).flatMap(arr => arr) as unknown as string[];
+                        if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
+                            continue;
+                        }
+
+                        for (let friday = 0; friday < fridayPossibilities.length; friday++) {
+                            const fridayNames = Object.values(fridayPossibilities[friday]).flatMap(arr => arr) as unknown as string[];
+                            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
+                                continue;
+                            }
+
+                            const schedule = {
+                                "Monday": mondayPossibilities[monday],
+                                "Tuesday": tuesdayPossibilities[tuesday],
+                                "Wednesday": wednesdayPossibilities[wednesday],
+                                "Thursday": thursdayPossibilities[thursday],
+                                "Friday": fridayPossibilities[friday]
+                            };
+                            schedules.push(schedule);
+                        }
+                    }
                 }
             }
         }
+        const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+        const hours = Math.floor(elapsedSeconds / 3600);
+        const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+        const secs = elapsedSeconds % 60;
+
+        // Pad hours, minutes, and seconds with leading zeros if necessary
+        const paddedHours = String(hours).padStart(2, '0');
+        const paddedMinutes = String(minutes).padStart(2, '0');
+        const paddedSeconds = String(secs).padStart(2, '0');
+
+        // Return formatted time string
+        console.log(`${paddedHours}:${paddedMinutes}:${paddedSeconds}`);
         console.log(schedules);
-        setGeneratingSchedules(false);
         setPossibleSchedules(schedules);
         console.log("click");
     }
@@ -138,6 +187,7 @@ const ViewSchedule = () => {
         //todo refactor this so in the rare case this does happened, make it so this error is handled
         //this should not happened
         if (allAvailableMentors === undefined || Object.values(allAvailableMentors).some(v => v === undefined)) {
+            console.log("a problem occurred")
             return false;
         }
 
@@ -170,6 +220,9 @@ const ViewSchedule = () => {
             }
         }
 
+        if(specifiedDay === "Friday") {
+            console.log("Friday", allDayPossibilities);
+        }
         return allDayPossibilities;
     }
 
@@ -229,6 +282,32 @@ const ViewSchedule = () => {
             console.log(peopleCount.some(num => num > maxShifts));
         }
         return peopleCount.some(num => num > maxShifts);
+    }
+
+    function pressStopwatchButton() {
+        if (!startStopwatch) {
+            console.log("starting stopwatch");
+            startTime = new Date().getTime(); // get the starting time by subtracting the elapsed paused time from the current time
+        }
+
+        else {
+            console.log("ending stopwatch");
+            const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+            const hours = Math.floor(elapsedSeconds / 3600);
+            const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+            const secs = elapsedSeconds % 60;
+
+            // Pad hours, minutes, and seconds with leading zeros if necessary
+            const paddedHours = String(hours).padStart(2, '0');
+            const paddedMinutes = String(minutes).padStart(2, '0');
+            const paddedSeconds = String(secs).padStart(2, '0');
+
+            // Return formatted time string
+            console.log(`${paddedHours}:${paddedMinutes}:${paddedSeconds}`);
+
+        }
+
+        startStopwatch = !startStopwatch;
     }
 }
 
