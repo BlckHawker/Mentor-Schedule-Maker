@@ -120,27 +120,29 @@ const ViewSchedule = () => {
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
         mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
-        applyCustomFilters(mondayPossibilities, "Monday");
-        return;
+        mondayPossibilities = applyCustomFilters(mondayPossibilities, "Monday");
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
         tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
+        tuesdayPossibilities = applyCustomFilters(tuesdayPossibilities, "Tuesday");
 
         let wednesdayPossibilities = getDayShifts("Wednesday");
         wednesdayPossibilities = findLeastNoneShifts(wednesdayPossibilities);
+        wednesdayPossibilities = applyCustomFilters(wednesdayPossibilities, "Wednesday");
 
         let thursdayPossibilities = getDayShifts("Thursday");
         thursdayPossibilities = findLeastNoneShifts(thursdayPossibilities);
+        thursdayPossibilities = applyCustomFilters(thursdayPossibilities, "Thursday");
 
         let fridayPossibilities = getDayShifts("Friday");
         fridayPossibilities = findLeastNoneShifts(fridayPossibilities);
+        fridayPossibilities = applyCustomFilters(fridayPossibilities, "Friday");
 
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
         console.log(wednesdayPossibilities);
         console.log(thursdayPossibilities);
         console.log(fridayPossibilities);
-
         
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
         
@@ -363,8 +365,7 @@ const ViewSchedule = () => {
             filteredDays = filteredDays.filter(day => day[filter.selectedTime].includes(filter.selectedMentor));
         }
 
-        console.log(allDayShifts);
-        console.log("Filtered Days",filteredDays);
+        return filteredDays;
     }
 }
 
