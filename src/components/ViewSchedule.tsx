@@ -4,6 +4,7 @@ import { MentorInterface } from "@/app/interface/Mentor";
 import { Day } from "@/app/interface/Day"
 import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
+import Filter from "./Filter";
 
 const ViewSchedule = () => {
     const maxShifts = 4;
@@ -22,6 +23,8 @@ const ViewSchedule = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
+    const [filters, setFilters] = useState<number[]>([0]); // Start with one filter
+    const [filterStates, setFilterStates] = useState<{ [key: number]: { selectedMentor: string, selectedDay: string, selectedTime: string } }>({});
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
@@ -44,14 +47,47 @@ const ViewSchedule = () => {
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
             <h2>Filters</h2>
+            {filters.map((filterIndex) => (
+                <ul>
+                    <Filter key={filterIndex}
+                        mentors={savedMentors ?? []}
+                        onFilterChange={(filterData) => handleFilterChange(filterIndex, filterData)}
+                    />
+                <button onClick={() => removeFilter(filterIndex)}>Remove Filter</button>
+                </ul>
+
+            ))}
+            <button onClick={() => addFilter()}>Add Filter</button>
         </div>
     );
+
+    function handleFilterChange(index: number, filterData: { selectedMentor: string, selectedDay: string, selectedTime: string }) {
+        console.log(filterData);
+        setFilterStates(prevStates => ({
+            ...prevStates,
+            [index]: filterData
+        }));
+    };
+
+    function addFilter() {
+        setFilters([...filters, filters.length]);
+    };
+
+    function removeFilter(index: number) {
+        setFilters(filters.filter((_, i) => i !== index));
+    };
 
     function generateSchedules() {
         if (savedMentors === undefined) {
             console.log("There was an error");
             return;
         }
+
+        //verify filters
+        console.log(filterStates);
+        return;
+
+
 
         const startTime = new Date().getTime();
 
@@ -91,7 +127,6 @@ const ViewSchedule = () => {
             if (exceedHourLimit(mondayNames)) {
                 continue;
             }
-            //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
             for (const tuesdayShift of tuesdayPossibilities) {
                 const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
                 if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
@@ -121,73 +156,11 @@ const ViewSchedule = () => {
                                 "Friday": fridayShift
                             };
                             schedules.push(schedule);
-                            if (schedules.length >= 100) {
-                                break;
-                            }
-                        }
-
-                        if (schedules.length >= 100) {
-                            break;
                         }
                     }
-
-                    if (schedules.length >= 100) {
-                        break;
-                    }
                 }
-
-                if (schedules.length >= 100) {
-                    break;
-                }
-            }
-
-            if (schedules.length >= 100) {
-                break;
             }
         }
-
-        // for (const mondayShift of mondayPossibilities) {
-        //     const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
-        //     if (exceedHourLimit(mondayNames)) {
-        //         continue;
-        //     }
-        //     //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
-        //     for (const tuesdayShift of tuesdayPossibilities) {
-        //         const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
-        //         if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
-        //             continue;
-        //         }
-        //         for (const wednesdayShift of wednesdayPossibilities) {
-        //             const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
-        //             if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
-        //                 continue;
-        //             }
-
-        //             for (const thursdayShift of thursdayPossibilities) {
-        //                 const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
-        //                 if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
-        //                     continue;
-        //                 }
-
-        //                 for (const fridayShift of fridayPossibilities) {
-        //                     const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
-        //                     if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
-        //                         continue;
-        //                     }
-
-        //                     const schedule = {
-        //                         "Monday": mondayShift,
-        //                         "Tuesday": tuesdayShift,
-        //                         "Wednesday": wednesdayShift,
-        //                         "Thursday": thursdayShift,
-        //                         "Friday": fridayShift
-        //                     };
-        //                     schedules.push(schedule);
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
 
         const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
         const hours = Math.floor(elapsedSeconds / 3600);
