@@ -1,7 +1,7 @@
-interface Filter {
-    selectedName: string,
+interface FilterInterface {
+    selectedMentor: string,
     selectedDay: string,
     selectedTime: string;
 }
 
-export type { Filter }
+export type { FilterInterface }

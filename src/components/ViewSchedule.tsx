@@ -5,6 +5,7 @@ import { Day } from "@/app/interface/Day"
 import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 import Filter from "./Filter";
+import { FilterInterface } from "@/app/interface/Filter";
 
 const ViewSchedule = () => {
     const maxShifts = 4;
@@ -23,8 +24,8 @@ const ViewSchedule = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
-    const [filters, setFilters] = useState<number[]>([0]); // Start with one filter
-    const [filterStates, setFilterStates] = useState<{ [key: number]: { selectedMentor: string, selectedDay: string, selectedTime: string } }>({});
+    const [filters, setFilters] = useState<{ [key: number]: FilterInterface }>({});
+
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
@@ -47,34 +48,46 @@ const ViewSchedule = () => {
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
             <h2>Filters</h2>
-            {filters.map((filterIndex) => (
+            {Object.keys(filters).map((filterIndex) => (
                 <ul>
-                    <Filter key={filterIndex}
-                        mentors={savedMentors ?? []}
-                        onFilterChange={(filterData) => handleFilterChange(filterIndex, filterData)}
+                    <Filter
+                        key={filterIndex}
+                        mentors={savedMentors}
+                        onFilterChange={(filterData) => handleFilterChange(parseInt(filterIndex, 10), filterData)}
                     />
-                <button onClick={() => removeFilter(filterIndex)}>Remove Filter</button>
+                    <button onClick={() => removeFilter(parseInt(filterIndex, 10))}>Remove Filter</button>
                 </ul>
-
             ))}
             <button onClick={() => addFilter()}>Add Filter</button>
         </div>
     );
 
-    function handleFilterChange(index: number, filterData: { selectedMentor: string, selectedDay: string, selectedTime: string }) {
-        console.log(filterData);
-        setFilterStates(prevStates => ({
-            ...prevStates,
-            [index]: filterData
+    function addFilter() {
+        const newIndex = Object.keys(filters).length;
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            [newIndex]: { selectedMentor: "", selectedDay: "Monday", selectedTime: "10" }
         }));
     };
 
-    function addFilter() {
-        setFilters([...filters, filters.length]);
+    function removeFilter(index: number) {
+        setFilters(prevFilters => {
+            const { [index]: _, ...rest } = prevFilters; // Remove the filter entry
+            // Shift indices in the filter states
+            const reorderedFilters = {};
+            Object.keys(rest).forEach(key => {
+                const newKey = parseInt(key, 10) < index ? parseInt(key, 10) : parseInt(key, 10) - 1;
+                reorderedFilters[newKey] = rest[key];
+            });
+            return reorderedFilters;
+        });
     };
 
-    function removeFilter(index: number) {
-        setFilters(filters.filter((_, i) => i !== index));
+    function handleFilterChange(index: number, filterData: FilterInterface) {
+        setFilters(prevFilters => ({
+            ...prevFilters,
+            [index]: filterData
+        }));
     };
 
     function generateSchedules() {
@@ -83,8 +96,9 @@ const ViewSchedule = () => {
             return;
         }
 
+
         //verify filters
-        console.log(filterStates);
+        console.log(filters);
         return;
 
 
