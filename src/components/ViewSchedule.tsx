@@ -25,6 +25,7 @@ const ViewSchedule = () => {
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
     const [filters, setFilters] = useState<{ [key: number]: FilterInterface }>({});
+    const [warningText, setWarningText] = useState("");
 
     useEffect(() => {
         async function fetchData() {
@@ -59,6 +60,7 @@ const ViewSchedule = () => {
                 </ul>
             ))}
             <button onClick={() => addFilter()}>Add Filter</button>
+            <p>{warningText}</p>
         </div>
     );
 
@@ -96,9 +98,18 @@ const ViewSchedule = () => {
             return;
         }
 
-
+        
+        
         //verify filters
         console.log(filters);
+        if(Object.keys(filters).length > 1 && Object.keys(removeDuplicateFilters()).length !== Object.keys(filters).length)
+        {
+            setWarningText("duplicated filters found");
+        }
+        else
+        {
+            setWarningText("no duplicated filters found");
+        }
         return;
 
 
@@ -283,14 +294,39 @@ const ViewSchedule = () => {
         return arr.filter((x) => x === value).length;
     };
 
-    function removeDuplicates(arr: string[]) {
-        return arr.filter((item,
-            index) => arr.indexOf(item) === index);
+    function removeDuplicateStrings(arr: string[]) {
+        return arr.filter((item: any,
+            index: number) => arr.indexOf(item) === index);
+    }
+
+    function removeDuplicateFilters() {
+        function isDuplicateFilter(filterA: FilterInterface, filterB: FilterInterface): boolean {
+            return filterA.selectedMentor === filterB.selectedMentor &&
+                filterA.selectedDay === filterB.selectedDay &&
+                filterA.selectedTime === filterB.selectedTime;
+        }
+
+        const filterValues = Object.values(filters);
+
+        // Remove duplicates by creating a new array with only unique filters
+        const uniqueFilters = filterValues.filter((filter, index, self) =>
+            index === self.findIndex((f) => isDuplicateFilter(f, filter))
+        );
+
+        // Create a new filters object with unique filters
+        const uniqueFiltersObject = uniqueFilters.reduce((acc, filter, index) => {
+            acc[index] = filter;
+            return acc;
+        }, {} as { [key: number]: FilterInterface });
+
+        console.log(uniqueFiltersObject);
+
+        return uniqueFiltersObject;
     }
 
     function exceedHourLimit(people: string[], log: boolean = false) {
         //assumes there is only one mentor on shift
-        const nonduplicatedPeople = removeDuplicates(people).filter(name => name != "None");
+        const nonduplicatedPeople = removeDuplicateStrings(people).filter(name => name != "None");
         const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
         if (log) {
             console.log(people);
