@@ -356,9 +356,13 @@ const ViewSchedule = () => {
             return allDayShifts;
         const relevantFilters = Object.values(filters).filter(filter => filter.selectedDay === specifiedDay);
         console.log("relavent filters", relevantFilters);
+        
+        //apply filter on each day
+        let filteredDays = [].concat(allDayShifts);
+        for(const filter of relevantFilters) {
+            filteredDays = filteredDays.filter(day => day[filter.selectedTime].includes(filter.selectedMentor));
+        }
 
-        //get all the days where that person is working that specific shift
-        const filteredDays = allDayShifts.filter(day => day[relevantFilters[0].selectedTime].includes(relevantFilters[0].selectedMentor));
         console.log(allDayShifts);
         console.log("Filtered Days",filteredDays);
     }
