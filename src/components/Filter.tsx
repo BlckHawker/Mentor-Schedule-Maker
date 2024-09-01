@@ -35,7 +35,6 @@ const Filter = ({ mentors, onFilterChange }: Props) => {
     }
 
     return (
-        <div>
             <li>
                 Force
                 <select value={selectedMentor} onChange={(e) => setSelectedMentor(e.target.value)}>
@@ -62,12 +61,6 @@ const Filter = ({ mentors, onFilterChange }: Props) => {
                     ))}
                 </select>
             </li>
-            <li>{selectedMentor}</li>
-            <li>{selectedDay}</li>
-            <li>{selectedTime}</li>
-        </div>
-
-
     );
 }
 

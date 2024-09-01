@@ -105,12 +105,12 @@ const ViewSchedule = () => {
         if(Object.keys(filters).length > 1 && Object.keys(removeDuplicateFilters()).length !== Object.keys(filters).length)
         {
             setWarningText("duplicated filters found");
+            return;
         }
         else
         {
             setWarningText("no duplicated filters found");
         }
-        return;
 
 
 
@@ -120,6 +120,8 @@ const ViewSchedule = () => {
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
         mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
+        applyCustomFilters(mondayPossibilities, "Monday");
+        return;
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
         tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
@@ -139,9 +141,9 @@ const ViewSchedule = () => {
         console.log(thursdayPossibilities);
         console.log(fridayPossibilities);
 
-
+        
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
-
+        
         console.log(`Estimated number of results is ${expectedResultNumber}`)
         //the syntax is a lie
         const schedules = [];
@@ -319,8 +321,6 @@ const ViewSchedule = () => {
             return acc;
         }, {} as { [key: number]: FilterInterface });
 
-        console.log(uniqueFiltersObject);
-
         return uniqueFiltersObject;
     }
 
@@ -348,6 +348,19 @@ const ViewSchedule = () => {
 
         const desiredShifts = allDayShifts.filter((_, ix) => noneShiftCount[ix] == smallestNumber);
         return desiredShifts;
+    }
+
+    //filter out shifts based custom filters
+    function applyCustomFilters(allDayShifts: Day[], specifiedDay: string) {
+        if(Object.values(filters).length === 0)
+            return allDayShifts;
+        const relevantFilters = Object.values(filters).filter(filter => filter.selectedDay === specifiedDay);
+        console.log("relavent filters", relevantFilters);
+
+        //get all the days where that person is working that specific shift
+        const filteredDays = allDayShifts.filter(day => day[relevantFilters[0].selectedTime].includes(relevantFilters[0].selectedMentor));
+        console.log(allDayShifts);
+        console.log("Filtered Days",filteredDays);
     }
 }
 
