@@ -1,19 +1,36 @@
-- [ ] generate schedules based on mentor's availability
-    - [ ] create Mentor class
-        - [x] Availability
-        - [x] Name
-        - [x] Constructor with and availability (default availability will be not available at all)
-        - [ ] Method: edit mentor availability
-- [ ] Manually Add a mentor with availability
-    - [ ] fix a bug where availability is said to not be there, but buttons are green
-- [ ] Save mentor objects in local storage
-- [ ] Load mentor objects from local storage
-- [ ] Load mentor objects from when2meets
-- [ ] View mentors' availability
-- [ ] Delete a mentor
-- [ ] Edit
-    - [ ] A mentor's availability
-    - [ ] A mentor's name
-- [ ] Generate pdf of schedule mentor schedule
-- [ ] Refactor useState of `{ name: string; availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; }; }[]` to be a interface or class
-- [ ] Refactor generate schedules so generating all possible blocked is a parameterized method that returns an array
+### Home Page
+- Navbar (EACH PAGE WILL HAVE THIS)
+    - [ ] Create mentor
+    - [ ] Generate Schedule
+    - [ ] View/Edit mentor
+    - [ ] View all mentor availability
+- Body
+    - [ ] Ptag with what the website is about
+    - [ ] (maybe) current mentor schedule
+### Creating A Mentor
+- [ ] Navbar
+- [ ] Buttons
+    - [ ] Grey if that time slot is unavailable
+    - [ ] Green if available
+- Text bar for name
+    - [ ] Names have to be unique 
+    - [ ] force people to put first and last names
+- [ ] Submit button
+### View/Edit  Mentor
+- [ ] Navbar
+- [ ] Dropdown with all mentors
+- [ ] Once clicked, schedule shows up for that mentor
+- [ ] Same thing as creating a mentor shows up for that mentor
+- [ ] Save button
+- [ ] Reset button
+### View All Mentors
+- [ ] Navbar
+- [ ] View all mentors individually
+### Generating Schedules
+- [ ] Navbar
+- [ ] Max Hours allowed
+- [ ] Number of schedules to generate
+    - [ ] 30 default, no cap (optional)
+    - [ ] Time cap(optional) in minutes (int)
+- [ ] Generate button
+- [ ] Schedules are generated and displayed below the button
