@@ -1,4 +1,6 @@
-### Home Page
+### Misc
+- [ ] Creation of general pages (Kovu)
+### Home Page (Kovu)
 - Navbar (EACH PAGE WILL HAVE THIS)
     - [ ] Create mentor
     - [ ] Generate Schedule
@@ -7,7 +9,7 @@
 - Body
     - [ ] Ptag with what the website is about
     - [ ] (maybe) current mentor schedule
-### Creating A Mentor
+### Creating A Mentor (Sylvia)
 - [ ] Navbar
 - [ ] Buttons
     - [ ] Grey if that time slot is unavailable
@@ -16,6 +18,8 @@
     - [ ] Names have to be unique 
     - [ ] force people to put first and last names
 - [ ] Submit button
+    - [ ] Fix bug where validation says there is an empty schedule
+- [ ] Update debug metnors
 ### View/Edit  Mentor
 - [ ] Navbar
 - [ ] Dropdown with all mentors
