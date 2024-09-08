@@ -1,4 +1,5 @@
 "use client";
+import { MentorInterface } from "@/app/interface/Mentor";
 import Day from "@/components/Day";
 import { useState, useEffect } from "react";
 const CreateMentor = () => {
@@ -15,7 +16,7 @@ const CreateMentor = () => {
   };
   useEffect(() => {
     if (savedMentors !== undefined) {
-      console.log('updating local storage')
+      console.log('updating local storage');
       localStorage.setItem("mentors", JSON.stringify(savedMentors))
     }
   }, [savedMentors]);
@@ -28,7 +29,6 @@ const CreateMentor = () => {
         str = "[]";
       }
       const localStorageMentors = JSON.parse(str);
-      console.log(localStorageMentors);
       setSavedMentors(localStorageMentors);
       setIsLoading(false);
     }
@@ -84,19 +84,65 @@ const CreateMentor = () => {
       setWarningText(`A mentor with the name "${mentorName}" already exists`);
       return;
     }
+
+    //todo sort mentors
+
+    const newMentors = [ ...savedMentors, { name: mentorName, availability } ].sort(sortMentors);
+
     //add new mentor to the list
-    setSavedMentors( // Replace the state
-      [ // with a new array
-        ...savedMentors, // that contains all the old items
-        { name: mentorName, availability } // and one new item at the end
-      ]
-    );
+    setSavedMentors(newMentors);
     setWarningText(`Created new mentor: ${mentorName}`); //! this should be changed to not show as a warning
   }
 
   //Debug method that populates the mentor with dummy data
   function populateMentors() {
-    const mentors = [];
+    let mentors = [];
+
+    mentors.push({
+      name: "Brooklyn Furze", availability: {
+                  //10   11    12      1      2      3      4     5
+        "Monday": [false, false, false, false, false, false, true, true],
+        "Tuesday": [false, false, false, false, false, false, true, true],
+        "Wednesday": [false, false, false, false, false, false, true, true],
+        "Thursday": [false, false, false, true, true, true, true, true],
+        "Friday": [false, false, false, false, false, false, true, true],
+      }
+    });
+    mentors.push({
+      name: "Abigail Cawley", availability: {
+                  //10   11    12      1      2      3      4     5
+        "Monday": [false, false, true, false, false, false, false, true],
+        "Tuesday": [false, false, false, false, false, false, false, true],
+        "Wednesday": [false, false, true, false, false, false, false, true],
+        "Thursday": [false, false, false, false, false, false, false, true],
+        "Friday": [false, false, true, false, false, true, true, true],
+      }
+    });
+
+    
+    mentors.push({
+      name: "Ethan Ricker", availability: {
+                  //10   11    12      1      2      3      4     5
+        "Monday": [false, false, true, true, true, true, true, true],
+        "Tuesday": [false, false, false, false, false, true, false, false],
+        "Wednesday": [false, false, true, true, true, false, false, false],
+        "Thursday": [false, false, false, false, false, true, false, false],
+        "Friday": [false, false, true, true, true, true, false, false],
+      }
+    });
+
+
+    mentors.push({
+      name: "Jonah Edick", availability: {
+                  //10   11    12      1      2      3      4     5
+        "Monday": [true, false, true, false, false, false, false, false],
+        "Tuesday": [false, false, false, false, false, true, true, false],
+        "Wednesday": [true, false, true, false, true, true, true, true],
+        "Thursday": [false, false, false, false, false, false, false, false],
+        "Friday": [true, false, true, false, true, true, true, true],
+      }
+    });
+
     mentors.push({
       name: "Andrew Lee", availability: {
         //10   11    12      1      2      3      4     5
@@ -155,11 +201,11 @@ const CreateMentor = () => {
     mentors.push({
       name: "Hridiza", availability: {
                   //10   11    12      1      2      3      4     5
-      "Monday": [false, false, true, false, false, false, false, false],
+      "Monday": [false, false, false, true, false, false, false, false],
       "Tuesday": [false, false, false, false, false, false, false, false],
       "Wednesday": [false, false, false, false, false, false, false, false],
       "Thursday": [false, false, false, false, false, false, false, false],
-      "Friday": [false, false, true, false, false, false, false, false],
+      "Friday": [false, false, false, true, false, false, false, false],
       }
     });
 
@@ -177,11 +223,11 @@ const CreateMentor = () => {
     mentors.push({
       name: "Ryan Yocum", availability: {
                     //10   11    12      1      2      3      4     5
-        "Monday": [false, false, true, true, true, true, false, false],
-        "Tuesday": [false, false, false, true, true, true, false, false],
-        "Wednesday": [false, false, true, true, true, false, false, false],
-        "Thursday": [false, false, false, true, true, true, false, false],
-        "Friday": [false, false, true, true, false, false, false, false],
+        "Monday": [true, false, false, true, true, false, false, false],
+        "Tuesday": [false, false, false, false, true, true, false, false],
+        "Wednesday": [true, false, false, true, true, false, false, false],
+        "Thursday": [false, false, false, false, true, true, false, false],
+        "Friday": [true, false, false, true, true, false, false, false],
       }
     });
 
@@ -195,6 +241,19 @@ const CreateMentor = () => {
         "Friday": [false, false, false, false, false, false, true, true],
       }
     });
+
+    mentors.push({
+      name: "Tristen", availability: {
+                  //10   11    12      1      2      3      4     5
+        "Monday": [false, false, true, true, true, false, false, false],
+        "Tuesday": [true, true, false, false, false, false, false, true],
+        "Wednesday": [false, false, true, true, true, false, false, false],
+        "Thursday": [true, true, false, false, false, false, false, true],
+        "Friday": [true, false, true, true, true, false, false, false],
+      }
+    });
+
+    mentors = mentors.sort(sortMentors);
     setSavedMentors(mentors);
 
     setWarningText(`Added debug schedules for ${mentors.map(m => m.name).join(", ")}. (${mentors.length})`);
@@ -205,6 +264,10 @@ const CreateMentor = () => {
 
   function mentorNameChange(e: React.FormEvent<HTMLInputElement>) {
     setMentorName(e.currentTarget.value);
+  }
+
+  function sortMentors(m1: MentorInterface, m2: MentorInterface) {
+    return m1.name.localeCompare(m2.name);
   }
 };
 

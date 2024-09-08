@@ -1,12 +1,12 @@
 
-import Link from 'next/link';
+import NavBar from '@/components/NavBar';
 export default function Home() {
   return (
       <div>
         <h1>Home Page</h1>
-        <Link href="./mentor/">Go to Mentor Page</Link><br/>
-        <Link href="./schedule/">Go to Schedule Page</Link>
-
+        <NavBar/>
+        <h3>What is this?</h3>
+        <p>This website displays all the possible schedules for mentors given their availability.</p>
       </div>
   );
 }
