@@ -117,22 +117,28 @@ const ViewSchedule = () => {
         let mondayPossibilities = getDayShifts("Monday");
         mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
         mondayPossibilities = applyCustomFilters(mondayPossibilities, "Monday");
+        mondayPossibilities = removeMaxHoursExceededDays(mondayPossibilities);
+ 
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
         tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
         tuesdayPossibilities = applyCustomFilters(tuesdayPossibilities, "Tuesday");
+        tuesdayPossibilities = removeMaxHoursExceededDays(tuesdayPossibilities);
 
         let wednesdayPossibilities = getDayShifts("Wednesday");
         wednesdayPossibilities = findLeastNoneShifts(wednesdayPossibilities);
         wednesdayPossibilities = applyCustomFilters(wednesdayPossibilities, "Wednesday");
+        wednesdayPossibilities = removeMaxHoursExceededDays(wednesdayPossibilities);
 
         let thursdayPossibilities = getDayShifts("Thursday");
         thursdayPossibilities = findLeastNoneShifts(thursdayPossibilities);
         thursdayPossibilities = applyCustomFilters(thursdayPossibilities, "Thursday");
+        thursdayPossibilities = removeMaxHoursExceededDays(thursdayPossibilities);
 
         let fridayPossibilities = getDayShifts("Friday");
         fridayPossibilities = findLeastNoneShifts(fridayPossibilities);
         fridayPossibilities = applyCustomFilters(fridayPossibilities, "Friday");
+        fridayPossibilities = removeMaxHoursExceededDays(fridayPossibilities);
 
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
@@ -140,16 +146,19 @@ const ViewSchedule = () => {
         console.log(thursdayPossibilities);
         console.log(fridayPossibilities);
         
+        
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
         
         console.log(`Estimated number of results is ${expectedResultNumber}`)
+        return;
         //the syntax is a lie
         const schedules = [];
-        return;
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
         for (const mondayShift of mondayPossibilities) {
             const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
+            console.log("Monday Names", mondayNames);
+
             if (exceedHourLimit(mondayNames)) {
                 continue;
             }
@@ -343,10 +352,7 @@ const ViewSchedule = () => {
             return names.length;
         });
 
-
-        const smallestNumber = noneShiftCount.sort()[0];
-        console.log(smallestNumber);
-
+        let smallestNumber = structuredClone(noneShiftCount).sort()[0];
         const desiredShifts = allDayShifts.filter((_, ix) => noneShiftCount[ix] == smallestNumber);
         return desiredShifts;
     }
@@ -364,6 +370,15 @@ const ViewSchedule = () => {
             filteredDays = filteredDays.filter(day => day[filter.selectedTime].includes(filter.selectedMentor));
         }
 
+        return filteredDays;
+    }
+
+    //remove any day possibilities in which the max hours were exceeded
+    function removeMaxHoursExceededDays(allDayShifts: Day[]) {
+        const filteredDays = allDayShifts.filter(shift => {
+            const names = Object.values(shift).flatMap(arr => arr) as unknown as string[];
+            return !exceedHourLimit(names);
+        });
         return filteredDays;
     }
 }
