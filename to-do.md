@@ -30,7 +30,7 @@
 ### View All Mentors
 - [x] Navbar
 - [ ] View all mentors individually
-### Generating Schedules
+### Generating Schedules (Kovu)
 - [x] Navbar
 - [ ] Max Hours allowed
 - [ ] Number of schedules to generate
