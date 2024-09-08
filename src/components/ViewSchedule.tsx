@@ -101,7 +101,6 @@ const ViewSchedule = () => {
         
         
         //verify filters
-        console.log(filters);
         if(Object.keys(filters).length > 1 && Object.keys(removeDuplicateFilters()).length !== Object.keys(filters).length)
         {
             setWarningText("duplicated filters found");
@@ -112,10 +111,7 @@ const ViewSchedule = () => {
             setWarningText("no duplicated filters found");
         }
 
-
-
         const startTime = new Date().getTime();
-
 
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
@@ -149,6 +145,7 @@ const ViewSchedule = () => {
         console.log(`Estimated number of results is ${expectedResultNumber}`)
         //the syntax is a lie
         const schedules = [];
+        return;
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
         for (const mondayShift of mondayPossibilities) {
@@ -346,7 +343,9 @@ const ViewSchedule = () => {
             return names.length;
         });
 
-        const smallestNumber = Math.min(...noneShiftCount);
+
+        const smallestNumber = noneShiftCount.sort()[0];
+        console.log(smallestNumber);
 
         const desiredShifts = allDayShifts.filter((_, ix) => noneShiftCount[ix] == smallestNumber);
         return desiredShifts;
@@ -360,7 +359,7 @@ const ViewSchedule = () => {
         console.log("relavent filters", relevantFilters);
         
         //apply filter on each day
-        let filteredDays = [].concat(allDayShifts);
+        let filteredDays = [].concat(allDayShifts); //don't modify the original
         for(const filter of relevantFilters) {
             filteredDays = filteredDays.filter(day => day[filter.selectedTime].includes(filter.selectedMentor));
         }
