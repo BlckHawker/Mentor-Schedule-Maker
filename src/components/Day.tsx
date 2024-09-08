@@ -4,7 +4,7 @@
 import Block from '@/components/Block';
 interface Props {
     day: string;
-    availability: boolean[]
+    availability: boolean[];
 }
 const Day = (props: Props) => {
     return (

@@ -6,13 +6,13 @@ const CreateMentor = () => {
   const [mentorName, setMentorName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [savedMentors, setSavedMentors] = useState<{ name: string; availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; }; }[]>();
-  const availability = {
+  const [availability, setAvailability] = useState({
     "Monday": [false, false, false, false, false, false, false, false],
     "Tuesday": [false, false, false, false, false, false, false, false],
     "Wednesday": [false, false, false, false, false, false, false, false],
     "Thursday": [false, false, false, false, false, false, false, false],
     "Friday": [false, false, false, false, false, false, false, false],
-  };
+  });
   useEffect(() => {
     if (savedMentors !== undefined) {
       console.log('updating local storage')
@@ -63,6 +63,8 @@ const CreateMentor = () => {
       return;
     }
     //if availability is complexly blank, invalid
+    console.log("TESTING")
+    console.log(availability)
     if (
       Object.values(availability)
         .flatMap((b) => b)
@@ -84,14 +86,28 @@ const CreateMentor = () => {
       setWarningText(`A mentor with the name "${mentorName}" already exists`);
       return;
     }
+    var test = [ // with a new array
+    ...savedMentors, // that contains all the old items
+    { name: mentorName, availability } // and one new item at the end
+  ]
+
     //add new mentor to the list
     setSavedMentors( // Replace the state
-      [ // with a new array
-        ...savedMentors, // that contains all the old items
-        { name: mentorName, availability } // and one new item at the end
-      ]
+      // [ // with a new array
+      //   ...savedMentors, // that contains all the old items
+      //   { name: mentorName, availability } // and one new item at the end
+      // ]
+      test
     );
+    console.log(test)
     setWarningText(`Created new mentor: ${mentorName}`); //! this should be changed to not show as a warning
+    setAvailability({
+      "Monday": [false, false, false, false, false, false, false, false],
+    "Tuesday": [false, false, false, false, false, false, false, false],
+    "Wednesday": [false, false, false, false, false, false, false, false],
+    "Thursday": [false, false, false, false, false, false, false, false],
+    "Friday": [false, false, false, false, false, false, false, false],
+    });
   }
 
   //Debug method that populates the mentor with dummy data
@@ -205,6 +221,7 @@ const CreateMentor = () => {
 
   function mentorNameChange(e: React.FormEvent<HTMLInputElement>) {
     setMentorName(e.currentTarget.value);
+    console.log(availability)
   }
 };
 

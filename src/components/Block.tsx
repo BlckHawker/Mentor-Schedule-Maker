@@ -8,7 +8,7 @@ interface Props {
 }
 
 const Block = (props: Props) => {
-  const [isActive, setIsActive] = useState(false);
+  const [isActive, setIsActive] = useState(props.availability[props.index]);
   useEffect(() => {
     console.log("is active use effect: " + isActive)
     props.availability[props.index] = isActive;
