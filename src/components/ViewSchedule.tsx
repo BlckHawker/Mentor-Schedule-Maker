@@ -164,37 +164,40 @@ const ViewSchedule = () => {
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
         
         console.log(`Estimated number of results is ${expectedResultNumber}`)
-        return;
-        //the syntax is a lie
+
         const schedules = [];
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
         for (const mondayShift of mondayPossibilities) {
+            let names: string[] = [];
             const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
-            console.log("Monday Names", mondayNames);
-
-            if (exceedHourLimit(mondayNames, maxShiftsNumber)) {
+            names = names.concat(mondayNames);
+            if (exceedHourLimit(names, maxShiftsNumber)) {
                 continue;
             }
             for (const tuesdayShift of tuesdayPossibilities) {
                 const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
-                if (exceedHourLimit(mondayNames.concat(tuesdayNames), maxShiftsNumber)) {
+                names = names.concat(tuesdayNames);
+                if (exceedHourLimit(names, maxShiftsNumber)) {
                     continue;
                 }
                 for (const wednesdayShift of wednesdayPossibilities) {
                     const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
-                    if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames), maxShiftsNumber)) {
+                    names = names.concat(wednesdayNames);
+                    if (exceedHourLimit(names, maxShiftsNumber)) {
                         continue;
                     }
 
                     for (const thursdayShift of thursdayPossibilities) {
                         const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
-                        if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames), maxShiftsNumber)) {
+                        names = names.concat(thursdayNames);
+                        if (exceedHourLimit(names, maxShiftsNumber)) {
                             continue;
                         }
                         for (const fridayShift of fridayPossibilities) {
                             const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
-                            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames), maxShiftsNumber)) {
+                            names = names.concat(fridayNames);
+                            if (exceedHourLimit(names, maxShiftsNumber)) {
                                 continue;
                             }
                             const schedule = {

@@ -32,10 +32,14 @@
 - [ ] View all mentors individually
 ### Generating Schedules (Kovu)
 - [x] Navbar
-- [ ] Max Hours allowed
+- [x] Max Hours allowed
 - [ ] Number of schedules to generate
     - [ ] 30 default, no cap (optional)
     - [ ] Time cap(optional) in minutes (int)
-- [ ] Generate button
+- [x] Generate button
 - [ ] Schedules are generated and displayed below the button
-- [ ] If the estimated # of results is a very large number (internally parametrized), give a warning if people want to continue or not
+- [ ] If the estimated # of results is a very large number (internally parametrized), give a warning if people want to continue with the generation or not
+- [ ] Add a chime when the generating finishes
+- [ ] change filters to be similar shape of the calendar (in order to avoid filter conflicts)
+- [ ] have a checkbox that will prioritize people who don't have as much availability
+- [ ] Either have a warning or highlight two filters that will conflict with each other
