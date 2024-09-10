@@ -6,9 +6,9 @@ import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 import Filter from "./Filter";
 import { FilterInterface } from "@/app/interface/Filter";
+import NavBar from "./NavBar";
 
 const ViewSchedule = () => {
-    const maxShifts = 4;
     const emptyDay = {
         "10": [],
         "11": [],
@@ -21,6 +21,7 @@ const ViewSchedule = () => {
     }
     let startStopwatch = false;
     let startTime: number;
+    const [maxShiftsString, setMaxShiftsString] = useState("4");
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
@@ -46,6 +47,9 @@ const ViewSchedule = () => {
     }
     return (
         <div>
+            <NavBar/>
+            <h4>Max hours</h4>
+            <input type="text"value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input><br />
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
             <h2>Filters</h2>
@@ -93,11 +97,21 @@ const ViewSchedule = () => {
     };
 
     function generateSchedules() {
+        setWarningText("");
+
         if (savedMentors === undefined) {
             console.log("There was an error");
             return;
         }
 
+        console.log("Max shifts", maxShiftsString);
+        const maxShiftsNumber = parseInt(maxShiftsString);
+
+        if(Number.isNaN(maxShiftsNumber) || maxShiftsNumber < 1)
+        {
+            setWarningText("\"Max Shift\" needs to be a number greater than 0");
+            return;
+        }
         
         
         //verify filters
@@ -117,28 +131,28 @@ const ViewSchedule = () => {
         let mondayPossibilities = getDayShifts("Monday");
         mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
         mondayPossibilities = applyCustomFilters(mondayPossibilities, "Monday");
-        mondayPossibilities = removeMaxHoursExceededDays(mondayPossibilities);
+        mondayPossibilities = removeMaxHoursExceededDays(mondayPossibilities, maxShiftsNumber);
  
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
         tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
         tuesdayPossibilities = applyCustomFilters(tuesdayPossibilities, "Tuesday");
-        tuesdayPossibilities = removeMaxHoursExceededDays(tuesdayPossibilities);
+        tuesdayPossibilities = removeMaxHoursExceededDays(tuesdayPossibilities, maxShiftsNumber);
 
         let wednesdayPossibilities = getDayShifts("Wednesday");
         wednesdayPossibilities = findLeastNoneShifts(wednesdayPossibilities);
         wednesdayPossibilities = applyCustomFilters(wednesdayPossibilities, "Wednesday");
-        wednesdayPossibilities = removeMaxHoursExceededDays(wednesdayPossibilities);
+        wednesdayPossibilities = removeMaxHoursExceededDays(wednesdayPossibilities, maxShiftsNumber);
 
         let thursdayPossibilities = getDayShifts("Thursday");
         thursdayPossibilities = findLeastNoneShifts(thursdayPossibilities);
         thursdayPossibilities = applyCustomFilters(thursdayPossibilities, "Thursday");
-        thursdayPossibilities = removeMaxHoursExceededDays(thursdayPossibilities);
+        thursdayPossibilities = removeMaxHoursExceededDays(thursdayPossibilities, maxShiftsNumber);
 
         let fridayPossibilities = getDayShifts("Friday");
         fridayPossibilities = findLeastNoneShifts(fridayPossibilities);
         fridayPossibilities = applyCustomFilters(fridayPossibilities, "Friday");
-        fridayPossibilities = removeMaxHoursExceededDays(fridayPossibilities);
+        fridayPossibilities = removeMaxHoursExceededDays(fridayPossibilities, maxShiftsNumber); 
 
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
@@ -159,28 +173,28 @@ const ViewSchedule = () => {
             const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
             console.log("Monday Names", mondayNames);
 
-            if (exceedHourLimit(mondayNames)) {
+            if (exceedHourLimit(mondayNames, maxShiftsNumber)) {
                 continue;
             }
             for (const tuesdayShift of tuesdayPossibilities) {
                 const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
-                if (exceedHourLimit(mondayNames.concat(tuesdayNames))) {
+                if (exceedHourLimit(mondayNames.concat(tuesdayNames), maxShiftsNumber)) {
                     continue;
                 }
                 for (const wednesdayShift of wednesdayPossibilities) {
                     const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
-                    if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames))) {
+                    if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames), maxShiftsNumber)) {
                         continue;
                     }
 
                     for (const thursdayShift of thursdayPossibilities) {
                         const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
-                        if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames))) {
+                        if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames), maxShiftsNumber)) {
                             continue;
                         }
                         for (const fridayShift of fridayPossibilities) {
                             const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
-                            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames))) {
+                            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames), maxShiftsNumber)) {
                                 continue;
                             }
                             const schedule = {
@@ -332,17 +346,11 @@ const ViewSchedule = () => {
         return uniqueFiltersObject;
     }
 
-    function exceedHourLimit(people: string[], log: boolean = false) {
+    function exceedHourLimit(people: string[], maxShiftsNumber: number) {
         //assumes there is only one mentor on shift
         const nonduplicatedPeople = removeDuplicateStrings(people).filter(name => name != "None");
         const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
-        if (log) {
-            console.log(people);
-            console.log(nonduplicatedPeople);
-            console.log(peopleCount);
-            console.log(peopleCount.some(num => num > maxShifts));
-        }
-        return peopleCount.some(num => num > maxShifts);
+        return peopleCount.some(num => num > maxShiftsNumber);
     }
 
     //find the least amount of times None appears in a day
@@ -374,10 +382,10 @@ const ViewSchedule = () => {
     }
 
     //remove any day possibilities in which the max hours were exceeded
-    function removeMaxHoursExceededDays(allDayShifts: Day[]) {
+    function removeMaxHoursExceededDays(allDayShifts: Day[], maxShiftsNumber: number) {
         const filteredDays = allDayShifts.filter(shift => {
             const names = Object.values(shift).flatMap(arr => arr) as unknown as string[];
-            return !exceedHourLimit(names);
+            return !exceedHourLimit(names, maxShiftsNumber);
         });
         return filteredDays;
     }
