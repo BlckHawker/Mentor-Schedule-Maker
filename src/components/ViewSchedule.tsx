@@ -4,14 +4,15 @@ import { MentorInterface } from "@/app/interface/Mentor";
 import { Day } from "@/app/interface/Day"
 import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
-import Filter from "./Filter";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const ViewSchedule = () => {
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
     let startStopwatch = false;
     let startTime: number;
+    const [maxTimeBoolean, setMaxTimeBoolean] = useState(true);
     const [maxShiftsString, setMaxShiftsString] = useState("4");
+    const [maxTimeString, setMaxTimeString] = useState("1");
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
@@ -37,10 +38,12 @@ const ViewSchedule = () => {
     return (
         <div>
             <NavBar />
-            <h4>Max hours</h4>
-            <input type="text" value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input><br />
-            <button onClick={() => generateSchedules()}>Generate schedules</button>
-            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
+            <h4>Max Shifts</h4>
+            <input type="text" value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input>
+            <h4>Max Time</h4>
+            <input type="checkbox" checked={maxTimeBoolean}  onChange={e => setMaxTimeBoolean(e.target.checked)} />
+            <p>The time generation will take (in minutes)</p>
+            <input type="text" value={maxTimeString} onChange={e => setMaxTimeString(e.target.value)} disabled={!maxTimeBoolean}></input><br />
             <h2>Filters</h2>
             <table>
                 <tr>
@@ -116,6 +119,8 @@ const ViewSchedule = () => {
                     <td>{getDropDown("Friday-5")}</td>
                 </tr>
             </table>
+            <button onClick={() => generateSchedules()}>Generate schedules</button>
+            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
             <p>{warningText}</p>
         </div>
     );
@@ -123,6 +128,7 @@ const ViewSchedule = () => {
     function generateSchedules() {
         setWarningText("");
 
+        console.log(maxTimeBoolean);
         if (savedMentors === undefined) {
             console.log("There was an error");
             return;
@@ -134,7 +140,12 @@ const ViewSchedule = () => {
             setWarningText("\"Max Shift\" needs to be a number greater than 0");
             return;
         }
-
+        maxTimeString
+        const maxTimeNumber = parseInt(maxTimeString);
+        if (Number.isNaN(maxShiftsNumber) || maxShiftsNumber < 1) {
+            setWarningText("\"Max Shift\" needs to be a number greater than 0");
+            return;
+        }
 
         //get new filters
         const filters : FilterInterface[] = [];
@@ -187,10 +198,7 @@ const ViewSchedule = () => {
         console.log(fridayPossibilities);
 
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
-        new Audio(notifSound).play()
-        console.log(`Estimated number of results is ${expectedResultNumber}`)
-        return;
-
+        console.log(`Estimated number of results is ${expectedResultNumber}`);
         const schedules = [];
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
@@ -198,31 +206,51 @@ const ViewSchedule = () => {
             let names: string[] = [];
             const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
             names = names.concat(mondayNames);
+            
+            if(maxTimeExceeded(maxTimeNumber, startTime, "M")) {
+                setWarningText("Elapsed Time has exceeded max time");
+                break;
+            }
             if (exceedHourLimit(names, maxShiftsNumber)) {
                 continue;
             }
             for (const tuesdayShift of tuesdayPossibilities) {
                 const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
                 names = names.concat(tuesdayNames);
+                if(maxTimeExceeded(maxTimeNumber, startTime, "T")) {
+                    setWarningText("Elapsed Time has exceeded max time");
+                    break;
+                }
                 if (exceedHourLimit(names, maxShiftsNumber)) {
                     continue;
                 }
                 for (const wednesdayShift of wednesdayPossibilities) {
                     const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
                     names = names.concat(wednesdayNames);
+                    if(maxTimeExceeded(maxTimeNumber, startTime, "W")) {
+                        setWarningText("Elapsed Time has exceeded max time");
+                        break;
+                    }
                     if (exceedHourLimit(names, maxShiftsNumber)) {
                         continue;
                     }
-
                     for (const thursdayShift of thursdayPossibilities) {
                         const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
                         names = names.concat(thursdayNames);
+                        if(maxTimeExceeded(maxTimeNumber, startTime, "H")) {
+                            setWarningText("Elapsed Time has exceeded max time");
+                            break;
+                        }
                         if (exceedHourLimit(names, maxShiftsNumber)) {
                             continue;
                         }
                         for (const fridayShift of fridayPossibilities) {
                             const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
                             names = names.concat(fridayNames);
+                            if(maxTimeExceeded(maxTimeNumber, startTime, "F")) {
+                                setWarningText("Elapsed Time has exceeded max time");
+                                break;
+                            }
                             if (exceedHourLimit(names, maxShiftsNumber)) {
                                 continue;
                             }
@@ -240,7 +268,7 @@ const ViewSchedule = () => {
             }
         }
 
-        const elapsedSeconds = Math.floor((new Date().getTime() - startTime) / 1000);
+        const elapsedSeconds = getElapsedSeconds(startTime);
         const hours = Math.floor(elapsedSeconds / 3600);
         const minutes = Math.floor((elapsedSeconds % 3600) / 60);
         const secs = elapsedSeconds % 60;
@@ -254,7 +282,10 @@ const ViewSchedule = () => {
         console.log(`${paddedHours}:${paddedMinutes}:${paddedSeconds}`);
         console.log("result", schedules);
         setPossibleSchedules(schedules);
-        console.log("click");
+
+        //play sound to notify user that it's done
+        new Audio(notifSound).play()
+
     }
 
     //get all the shifts for a specific day
@@ -316,6 +347,7 @@ const ViewSchedule = () => {
             }
         }
 
+        
         return allDayPossibilities;
     }
 
@@ -411,6 +443,22 @@ const ViewSchedule = () => {
                 </option>
             ))}
         </select>
+    }
+
+    function getElapsedSeconds(startTime: number) {
+        return Math.floor((new Date().getTime() - startTime) / 1000);
+    }
+
+    function getElapsedMinutes(startTime: number, str: string) {
+        const elapsedSeconds = getElapsedSeconds(startTime);
+        console.log(elapsedSeconds, Math.floor((elapsedSeconds % 3600) / 60), str);
+        return Math.floor((elapsedSeconds % 3600) / 60);
+    }
+
+    function maxTimeExceeded(maxTimeNumber: number, startTime: number, str: string) {
+        const minutes = getElapsedMinutes(startTime, str);
+        return maxTimeBoolean && minutes >= maxTimeNumber;
+
     }
 }
 

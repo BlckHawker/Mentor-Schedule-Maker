@@ -35,7 +35,7 @@
 - [x] Max Hours allowed
 - [ ] Number of schedules to generate
     - [ ] 30 default, no cap (optional)
-    - [ ] Time cap(optional) in minutes (int)
+    - [x] Time cap(optional) in minutes (int)
 - [x] Generate button
 - [ ] Schedules are generated and displayed below the button
 - [ ] If the estimated # of results is a very large number (internally parametrized), give a warning if people want to continue with the generation or not
