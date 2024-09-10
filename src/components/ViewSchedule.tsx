@@ -25,7 +25,6 @@ const ViewSchedule = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
-    const [filters, setFilters] = useState<{ [key: number]: FilterInterface }>({});
     const [warningText, setWarningText] = useState("");
 
     useEffect(() => {
@@ -47,54 +46,89 @@ const ViewSchedule = () => {
     }
     return (
         <div>
-            <NavBar/>
+            <NavBar />
             <h4>Max hours</h4>
-            <input type="text"value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input><br />
+            <input type="text" value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input><br />
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
             <h2>Filters</h2>
-            {Object.keys(filters).map((filterIndex) => (
-                <ul>
-                    <Filter
-                        key={filterIndex}
-                        mentors={savedMentors}
-                        onFilterChange={(filterData) => handleFilterChange(parseInt(filterIndex, 10), filterData)}
-                    />
-                    <button onClick={() => removeFilter(parseInt(filterIndex, 10))}>Remove Filter</button>
-                </ul>
-            ))}
-            <button onClick={() => addFilter()}>Add Filter</button>
+            <table>
+                <tr>
+                    <td></td>
+                    <td>Monday</td>
+                    <td>Tuesday</td>
+                    <td>Wednesday</td>
+                    <td>Thursday</td>
+                    <td>Friday</td>
+                </tr>
+                <tr>
+                    <td>10</td>
+                    <td>{getDropDown("Monday-10")}</td>
+                    <td>{getDropDown("Tuesday-10")}</td>
+                    <td>{getDropDown("Wednesday-10")}</td>
+                    <td>{getDropDown("Thursday-10")}</td>
+                    <td>{getDropDown("Friday-10")}</td>
+                </tr>
+                <tr>
+                    <td>11</td>
+                    <td>{getDropDown("Monday-11")}</td>
+                    <td>{getDropDown("Tuesday-11")}</td>
+                    <td>{getDropDown("Wednesday-11")}</td>
+                    <td>{getDropDown("Thursday-11")}</td>
+                    <td>{getDropDown("Friday-11")}</td>
+                </tr>
+                <tr>
+                    <td>12</td>
+                    <td>{getDropDown("Monday-12")}</td>
+                    <td>{getDropDown("Tuesday-12")}</td>
+                    <td>{getDropDown("Wednesday-12")}</td>
+                    <td>{getDropDown("Thursday-12")}</td>
+                    <td>{getDropDown("Friday-12")}</td>
+                </tr>
+                <tr>
+                    <td>1</td>
+                    <td>{getDropDown("Monday-1")}</td>
+                    <td>{getDropDown("Tuesday-1")}</td>
+                    <td>{getDropDown("Wednesday-1")}</td>
+                    <td>{getDropDown("Thursday-1")}</td>
+                    <td>{getDropDown("Friday-1")}</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>{getDropDown("Monday-2")}</td>
+                    <td>{getDropDown("Tuesday-2")}</td>
+                    <td>{getDropDown("Wednesday-2")}</td>
+                    <td>{getDropDown("Thursday-2")}</td>
+                    <td>{getDropDown("Friday-2")}</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>{getDropDown("Monday-3")}</td>
+                    <td>{getDropDown("Tuesday-3")}</td>
+                    <td>{getDropDown("Wednesday-3")}</td>
+                    <td>{getDropDown("Thursday-3")}</td>
+                    <td>{getDropDown("Friday-3")}</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>{getDropDown("Monday-4")}</td>
+                    <td>{getDropDown("Tuesday-4")}</td>
+                    <td>{getDropDown("Wednesday-4")}</td>
+                    <td>{getDropDown("Thursday-4")}</td>
+                    <td>{getDropDown("Friday-4")}</td>
+                </tr>
+                <tr>
+                    <td>5</td>
+                    <td>{getDropDown("Monday-5")}</td>
+                    <td>{getDropDown("Tuesday-5")}</td>
+                    <td>{getDropDown("Wednesday-5")}</td>
+                    <td>{getDropDown("Thursday-5")}</td>
+                    <td>{getDropDown("Friday-5")}</td>
+                </tr>
+            </table>
             <p>{warningText}</p>
         </div>
     );
-
-    function addFilter() {
-        const newIndex = Object.keys(filters).length;
-        setFilters(prevFilters => ({
-            ...prevFilters,
-            [newIndex]: { selectedMentor: "", selectedDay: "Monday", selectedTime: "10" }
-        }));
-    };
-
-    function removeFilter(index: number) {
-        setFilters(prevFilters => {
-            const { [index]: _, ...rest } = prevFilters; // Remove the filter entry
-            // Shift indices in the filter states
-            const reorderedFilters = {};
-            Object.keys(rest).forEach(key => {
-                const newKey = parseInt(key, 10) < index ? parseInt(key, 10) : parseInt(key, 10) - 1;
-                reorderedFilters[newKey] = rest[key];
-            });
-            return reorderedFilters;
-        });
-    };
-
-    function handleFilterChange(index: number, filterData: FilterInterface) {
-        setFilters(prevFilters => ({
-            ...prevFilters,
-            [index]: filterData
-        }));
-    };
 
     function generateSchedules() {
         setWarningText("");
@@ -104,25 +138,27 @@ const ViewSchedule = () => {
             return;
         }
 
-        console.log("Max shifts", maxShiftsString);
         const maxShiftsNumber = parseInt(maxShiftsString);
 
-        if(Number.isNaN(maxShiftsNumber) || maxShiftsNumber < 1)
-        {
+        if (Number.isNaN(maxShiftsNumber) || maxShiftsNumber < 1) {
             setWarningText("\"Max Shift\" needs to be a number greater than 0");
             return;
         }
-        
-        
-        //verify filters
-        if(Object.keys(filters).length > 1 && Object.keys(removeDuplicateFilters()).length !== Object.keys(filters).length)
-        {
-            setWarningText("duplicated filters found");
-            return;
-        }
-        else
-        {
-            setWarningText("no duplicated filters found");
+
+
+        //get new filters
+        const filters : FilterInterface[] = [];
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+        const times = ["10", "11", "12", "1", "2", "3", "4", "5"]
+
+        for(const selectedDay of days) {
+            for(const selectedTime of times) {
+                const selectedMentor = document.querySelector(`#${selectedDay}-${selectedTime}`).value;
+                if(selectedMentor !== "Any") {
+                    filters.push({selectedMentor, selectedDay, selectedTime});
+                }
+            }
         }
 
         const startTime = new Date().getTime();
@@ -130,39 +166,39 @@ const ViewSchedule = () => {
         //get all of the possible shift (one mentor) for each block
         let mondayPossibilities = getDayShifts("Monday");
         mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
-        mondayPossibilities = applyCustomFilters(mondayPossibilities, "Monday");
+        mondayPossibilities = applyCustomFilters(mondayPossibilities, "Monday", filters);
         mondayPossibilities = removeMaxHoursExceededDays(mondayPossibilities, maxShiftsNumber);
- 
+
 
         let tuesdayPossibilities = getDayShifts("Tuesday");
         tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
-        tuesdayPossibilities = applyCustomFilters(tuesdayPossibilities, "Tuesday");
+        tuesdayPossibilities = applyCustomFilters(tuesdayPossibilities, "Tuesday", filters);
         tuesdayPossibilities = removeMaxHoursExceededDays(tuesdayPossibilities, maxShiftsNumber);
 
         let wednesdayPossibilities = getDayShifts("Wednesday");
         wednesdayPossibilities = findLeastNoneShifts(wednesdayPossibilities);
-        wednesdayPossibilities = applyCustomFilters(wednesdayPossibilities, "Wednesday");
+        wednesdayPossibilities = applyCustomFilters(wednesdayPossibilities, "Wednesday", filters);
         wednesdayPossibilities = removeMaxHoursExceededDays(wednesdayPossibilities, maxShiftsNumber);
 
         let thursdayPossibilities = getDayShifts("Thursday");
         thursdayPossibilities = findLeastNoneShifts(thursdayPossibilities);
-        thursdayPossibilities = applyCustomFilters(thursdayPossibilities, "Thursday");
+        thursdayPossibilities = applyCustomFilters(thursdayPossibilities, "Thursday", filters);
         thursdayPossibilities = removeMaxHoursExceededDays(thursdayPossibilities, maxShiftsNumber);
 
         let fridayPossibilities = getDayShifts("Friday");
         fridayPossibilities = findLeastNoneShifts(fridayPossibilities);
-        fridayPossibilities = applyCustomFilters(fridayPossibilities, "Friday");
-        fridayPossibilities = removeMaxHoursExceededDays(fridayPossibilities, maxShiftsNumber); 
+        fridayPossibilities = applyCustomFilters(fridayPossibilities, "Friday", filters);
+        fridayPossibilities = removeMaxHoursExceededDays(fridayPossibilities, maxShiftsNumber);
 
         console.log(mondayPossibilities);
         console.log(tuesdayPossibilities);
         console.log(wednesdayPossibilities);
         console.log(thursdayPossibilities);
         console.log(fridayPossibilities);
-        
-        
+
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
-        
+        return;
+
         console.log(`Estimated number of results is ${expectedResultNumber}`)
 
         const schedules = [];
@@ -326,29 +362,6 @@ const ViewSchedule = () => {
             index: number) => arr.indexOf(item) === index);
     }
 
-    function removeDuplicateFilters() {
-        function isDuplicateFilter(filterA: FilterInterface, filterB: FilterInterface): boolean {
-            return filterA.selectedMentor === filterB.selectedMentor &&
-                filterA.selectedDay === filterB.selectedDay &&
-                filterA.selectedTime === filterB.selectedTime;
-        }
-
-        const filterValues = Object.values(filters);
-
-        // Remove duplicates by creating a new array with only unique filters
-        const uniqueFilters = filterValues.filter((filter, index, self) =>
-            index === self.findIndex((f) => isDuplicateFilter(f, filter))
-        );
-
-        // Create a new filters object with unique filters
-        const uniqueFiltersObject = uniqueFilters.reduce((acc, filter, index) => {
-            acc[index] = filter;
-            return acc;
-        }, {} as { [key: number]: FilterInterface });
-
-        return uniqueFiltersObject;
-    }
-
     function exceedHourLimit(people: string[], maxShiftsNumber: number) {
         //assumes there is only one mentor on shift
         const nonduplicatedPeople = removeDuplicateStrings(people).filter(name => name != "None");
@@ -369,15 +382,13 @@ const ViewSchedule = () => {
     }
 
     //filter out shifts based custom filters
-    function applyCustomFilters(allDayShifts: Day[], specifiedDay: string) {
-        if(Object.values(filters).length === 0)
+    function applyCustomFilters(allDayShifts: Day[], specifiedDay: string, filters: FilterInterface[]) {
+        if (Object.values(filters).length === 0)
             return allDayShifts;
         const relevantFilters = Object.values(filters).filter(filter => filter.selectedDay === specifiedDay);
-        console.log("relavent filters", relevantFilters);
-        
         //apply filter on each day
         let filteredDays = [].concat(allDayShifts); //don't modify the original
-        for(const filter of relevantFilters) {
+        for (const filter of relevantFilters) {
             filteredDays = filteredDays.filter(day => day[filter.selectedTime].includes(filter.selectedMentor));
         }
 
@@ -391,6 +402,18 @@ const ViewSchedule = () => {
             return !exceedHourLimit(names, maxShiftsNumber);
         });
         return filteredDays;
+    }
+
+    function getDropDown(id: string) {
+        const names = savedMentors === undefined ? [] : savedMentors.map(mentor => mentor.name);
+        names.splice(0, 0, "Any");
+        return <select id={id}>
+            {names.map(name => (
+                <option key={name} value={name}>
+                    {name}
+                </option>
+            ))}
+        </select>
     }
 }
 
