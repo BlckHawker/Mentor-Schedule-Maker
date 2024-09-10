@@ -405,7 +405,14 @@ const ViewSchedule = () => {
     }
 
     function getDropDown(id: string) {
-        const names = savedMentors === undefined ? [] : savedMentors.map(mentor => mentor.name);
+        if(isLoading || savedMentors === undefined) {
+            return "";
+        }
+        const day = id.split("-")[0];
+        const time = id.split("-")[1];
+        const timeIndex = ["10", "11", "12", "1", "2", "3", "4", "5"].indexOf(time);
+        const validMentors = savedMentors.filter(mentor => mentor.availability[day][timeIndex]);
+        const names = validMentors.map(mentor => mentor.name);
         names.splice(0, 0, "Any");
         return <select id={id}>
             {names.map(name => (
