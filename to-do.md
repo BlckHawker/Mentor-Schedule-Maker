@@ -39,7 +39,8 @@
 - [x] Generate button
 - [ ] Schedules are generated and displayed below the button
 - [ ] If the estimated # of results is a very large number (internally parametrized), give a warning if people want to continue with the generation or not
-- [ ] Add a chime when the generating finishes
+- [x] Add a chime when the generating finishes
+    -[ ] Change chime so it doesn't give people a heart attack
 - [x] change filters to be similar shape of the calendar (in order to avoid filter conflicts)
 - [x] Have filter drop downs only show when certain people are available 
 - [ ] have a checkbox that will prioritize people who don't have as much availability

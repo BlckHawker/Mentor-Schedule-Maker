@@ -7,18 +7,8 @@ import IndividualSchedule from "./IndividualSchedule";
 import Filter from "./Filter";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
-
 const ViewSchedule = () => {
-    const emptyDay = {
-        "10": [],
-        "11": [],
-        "12": [],
-        "1": [],
-        "2": [],
-        "3": [],
-        "4": [],
-        "5": []
-    }
+    const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
     let startStopwatch = false;
     let startTime: number;
     const [maxShiftsString, setMaxShiftsString] = useState("4");
@@ -197,9 +187,9 @@ const ViewSchedule = () => {
         console.log(fridayPossibilities);
 
         const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
-        return;
-
+        new Audio(notifSound).play()
         console.log(`Estimated number of results is ${expectedResultNumber}`)
+        return;
 
         const schedules = [];
 
@@ -342,7 +332,7 @@ const ViewSchedule = () => {
         //assume one mentor is working the shift
         savedMentors.forEach(m => {
             Object.keys(m.availability).forEach(day => {
-                if (day == specifiedDay && m.availability[day][index]) { //the syntax is a lie
+                if (day == specifiedDay && m.availability[day][index]) {
                     shifts.push(m.name);
                 }
             });
