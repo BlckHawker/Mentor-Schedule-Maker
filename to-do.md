@@ -33,8 +33,8 @@
 ### Generating Schedules (Kovu)
 - [x] Navbar
 - [x] Max Hours allowed
-- [ ] Number of schedules to generate
-    - [ ] 30 default, no cap (optional)
+- [x] Number of schedules to generate
+    - [x] 30 default, no cap (optional) (implemented, but not fully tested since generation takes too long)
     - [x] Time cap(optional) in minutes (int)
 - [x] Generate button
 - [ ] Schedules are generated and displayed below the button
@@ -43,4 +43,6 @@
     -[ ] Change chime so it doesn't give people a heart attack
 - [x] change filters to be similar shape of the calendar (in order to avoid filter conflicts)
 - [x] Have filter drop downs only show when certain people are available 
-- [ ] have a checkbox that will prioritize people who don't have as much availability
+- [ ] Have a checkbox that will prioritize people who don't have as much availability
+- [ ] Fix the "syntax" errors
+- [ ] Add threading so a timer of how long generation is has been appears
