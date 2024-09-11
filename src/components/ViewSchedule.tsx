@@ -18,7 +18,7 @@ const ViewSchedule = () => {
     const [maxSchedulesString, setMaxSchedulesString] = useState("30");
     const [maxShiftsString, setMaxShiftsString] = useState("4");
     const [isLoading, setIsLoading] = useState(false);
-    const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
+    const [savedMentors, setSavedMentors] = useState<MentorInterface[]>([]);
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
     const [warningText, setWarningText] = useState("");
 
@@ -76,15 +76,15 @@ const ViewSchedule = () => {
                 </tbody>
             </table>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
-            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
+            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}/>)}
             <p>{warningText}</p>
         </div>
     );
 
     function generateSchedules() {
         setWarningText("");
-        if (savedMentors === undefined) {
-            console.log("There was an error");
+        if (savedMentors.length === 0) {
+            setWarningText("No mentors saved in local storage");
             return;
         }
 
@@ -110,7 +110,7 @@ const ViewSchedule = () => {
 
         for (const selectedDay of days) {
             for (const selectedTime of times) {
-                const selectedMentor = document.querySelector(`#${selectedDay}-${selectedTime}`).value;
+                const selectedMentor = (document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement).value;
                 if (selectedMentor !== "Any") {
                     filters.push({ selectedMentor, selectedDay, selectedTime });
                 }
@@ -120,7 +120,7 @@ const ViewSchedule = () => {
         const startTime = new Date().getTime();
 
         //get all of the possible shift (one mentor) for each block
-        const allDayPossibilities = {};
+        const allDayPossibilities: { [key: string]: Day[] } = {};
 
         days.forEach(day => {
             let possibilities = getDayShifts(day);
@@ -128,6 +128,7 @@ const ViewSchedule = () => {
             possibilities = applyCustomFilters(possibilities, day, filters);
             possibilities = removeMaxHoursExceededDays(possibilities, maxShiftsNumber);
             allDayPossibilities[day] = possibilities;
+            console.log(possibilities);
         });
         //the length of all possibilities multiplied together
         const expectedResultNumber = Object.values(allDayPossibilities).reduce((acc, possibilities) => acc * possibilities.length, 1);
@@ -248,15 +249,15 @@ const ViewSchedule = () => {
     }
 
     //get all the shifts for a specific day
-    function getDayShifts(specifiedDay: string) {
+    function getDayShifts(specifiedDay: string): Day[] {
         if (savedMentors === undefined) {
-            console.log("There was an error");
-            return;
+            setWarningText(`There was an error getting day shifts for ${specifiedDay}`)
+            return [];
         }
 
 
         //all the mentors that are available some time on the specified day
-        const allAvailableMentors = {
+        const allAvailableMentors: { [key: string]: string[] } = {
             "10": getAllTimeShifts(specifiedDay, 0),
             "11": getAllTimeShifts(specifiedDay, 1),
             "12": getAllTimeShifts(specifiedDay, 2),
@@ -267,14 +268,14 @@ const ViewSchedule = () => {
             "5": getAllTimeShifts(specifiedDay, 7)
         };
 
-        //all of the possible ways to configure a day (assumes having 0-1 mentors per shift)
-        const allDayPossibilities = [];
+        // All of the possible ways to configure a day (assumes having 0-1 mentors per shift)
+        const allDayPossibilities: Day[] = [];
 
-        //todo refactor this so in the rare case this does happened, make it so this error is handled
-        //this should not happened
-        if (allAvailableMentors === undefined || Object.values(allAvailableMentors).some(v => v === undefined)) {
-            console.log("a problem occurred")
-            return false;
+        // Todo: refactor this so in the rare case this does happen, make it so this error is handled
+        // This should not happen
+        if (Object.values(allAvailableMentors).some(v => v === undefined)) {
+            console.log("A problem occurred");
+            return [];
         }
 
         //! There has to be an easier way to do this
@@ -311,10 +312,10 @@ const ViewSchedule = () => {
     }
 
     //get all the people who can work a specific shift on a specific day and time
-    function getAllTimeShifts(specifiedDay: string, index: number) {
+    function getAllTimeShifts(specifiedDay: string, index: number): string[] {
         if (savedMentors === undefined) {
-            console.log("There was an error");
-            return;
+            setWarningText(`There was an error getting all the people who can work on ${specifiedDay} at ${times[0]}`)
+            return [];
         }
 
         //automatically assume that nobody working the shift is an option
@@ -323,7 +324,7 @@ const ViewSchedule = () => {
         //assume one mentor is working the shift
         savedMentors.forEach(m => {
             Object.keys(m.availability).forEach(day => {
-                if (day == specifiedDay && m.availability[day][index]) {
+                if (day == specifiedDay && m.availability[day as keyof MentorInterface['availability']][index]) {
                     shifts.push(m.name);
                 }
             });
@@ -368,9 +369,9 @@ const ViewSchedule = () => {
             return allDayShifts;
         const relevantFilters = Object.values(filters).filter(filter => filter.selectedDay === specifiedDay);
         //apply filter on each day
-        let filteredDays = [].concat(allDayShifts); //don't modify the original
+        let filteredDays = [...allDayShifts]; // Don't modify the original
         for (const filter of relevantFilters) {
-            filteredDays = filteredDays.filter(day => day[filter.selectedTime].includes(filter.selectedMentor));
+            filteredDays = filteredDays.filter(day => day[filter.selectedTime as keyof Day].includes(filter.selectedMentor));
         }
 
         return filteredDays;
@@ -392,7 +393,7 @@ const ViewSchedule = () => {
         const day = id.split("-")[0];
         const time = id.split("-")[1];
         const timeIndex = ["10", "11", "12", "1", "2", "3", "4", "5"].indexOf(time);
-        const validMentors = savedMentors.filter(mentor => mentor.availability[day][timeIndex]);
+        const validMentors = savedMentors.filter(mentor => mentor.availability[day as keyof MentorInterface['availability']][timeIndex]);
         const names = validMentors.map(mentor => mentor.name);
         names.splice(0, 0, "Any");
         return <select id={id}>
