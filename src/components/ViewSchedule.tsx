@@ -44,11 +44,11 @@ const ViewSchedule = () => {
             <p>The max amount of shifts each mentor is allowed to work in a week</p>
             <input type="text" value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input>
             <h4>Max Time</h4>
-            <input type="checkbox" checked={maxTimeBoolean}  onChange={e => setMaxTimeBoolean(e.target.checked)} />
+            <input type="checkbox" checked={maxTimeBoolean} onChange={e => setMaxTimeBoolean(e.target.checked)} />
             <p>The time generation will take (in minutes)</p>
             <input type="text" value={maxTimeString} onChange={e => setMaxTimeString(e.target.value)} disabled={!maxTimeBoolean}></input><br />
             <h4>Max Schedules</h4>
-            <input type="checkbox" checked={maxSchedulesBoolean}  onChange={e => setMaxSchedulesBoolean(e.target.checked)} />
+            <input type="checkbox" checked={maxSchedulesBoolean} onChange={e => setMaxSchedulesBoolean(e.target.checked)} />
             <p>The max amount of schedules that will be found until generation stops</p>
             <input type="text" value={maxSchedulesString} onChange={e => setMaxSchedulesString(e.target.value)} disabled={!maxSchedulesBoolean}></input><br />
 
@@ -158,16 +158,16 @@ const ViewSchedule = () => {
             return;
         }
         //get new filters
-        const filters : FilterInterface[] = [];
+        const filters: FilterInterface[] = [];
 
         const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
         const times = ["10", "11", "12", "1", "2", "3", "4", "5"]
 
-        for(const selectedDay of days) {
-            for(const selectedTime of times) {
+        for (const selectedDay of days) {
+            for (const selectedTime of times) {
                 const selectedMentor = document.querySelector(`#${selectedDay}-${selectedTime}`).value;
-                if(selectedMentor !== "Any") {
-                    filters.push({selectedMentor, selectedDay, selectedTime});
+                if (selectedMentor !== "Any") {
+                    filters.push({ selectedMentor, selectedDay, selectedTime });
                 }
             }
         }
@@ -175,49 +175,28 @@ const ViewSchedule = () => {
         const startTime = new Date().getTime();
 
         //get all of the possible shift (one mentor) for each block
-        let mondayPossibilities = getDayShifts("Monday");
-        mondayPossibilities = findLeastNoneShifts(mondayPossibilities);
-        mondayPossibilities = applyCustomFilters(mondayPossibilities, "Monday", filters);
-        mondayPossibilities = removeMaxHoursExceededDays(mondayPossibilities, maxShiftsNumber);
+        const allDayPossibilities = {};
 
-
-        let tuesdayPossibilities = getDayShifts("Tuesday");
-        tuesdayPossibilities = findLeastNoneShifts(tuesdayPossibilities);
-        tuesdayPossibilities = applyCustomFilters(tuesdayPossibilities, "Tuesday", filters);
-        tuesdayPossibilities = removeMaxHoursExceededDays(tuesdayPossibilities, maxShiftsNumber);
-
-        let wednesdayPossibilities = getDayShifts("Wednesday");
-        wednesdayPossibilities = findLeastNoneShifts(wednesdayPossibilities);
-        wednesdayPossibilities = applyCustomFilters(wednesdayPossibilities, "Wednesday", filters);
-        wednesdayPossibilities = removeMaxHoursExceededDays(wednesdayPossibilities, maxShiftsNumber);
-
-        let thursdayPossibilities = getDayShifts("Thursday");
-        thursdayPossibilities = findLeastNoneShifts(thursdayPossibilities);
-        thursdayPossibilities = applyCustomFilters(thursdayPossibilities, "Thursday", filters);
-        thursdayPossibilities = removeMaxHoursExceededDays(thursdayPossibilities, maxShiftsNumber);
-
-        let fridayPossibilities = getDayShifts("Friday");
-        fridayPossibilities = findLeastNoneShifts(fridayPossibilities);
-        fridayPossibilities = applyCustomFilters(fridayPossibilities, "Friday", filters);
-        fridayPossibilities = removeMaxHoursExceededDays(fridayPossibilities, maxShiftsNumber);
-
-        console.log(mondayPossibilities);
-        console.log(tuesdayPossibilities);
-        console.log(wednesdayPossibilities);
-        console.log(thursdayPossibilities);
-        console.log(fridayPossibilities);
-
-        const expectedResultNumber = mondayPossibilities.length * tuesdayPossibilities.length * wednesdayPossibilities.length * thursdayPossibilities.length * fridayPossibilities.length;
+        days.forEach(day => {
+            let possibilities = getDayShifts(day);
+            possibilities = findLeastNoneShifts(possibilities);
+            possibilities = applyCustomFilters(possibilities, day, filters);
+            possibilities = removeMaxHoursExceededDays(possibilities, maxShiftsNumber);
+            allDayPossibilities[day] = possibilities;
+        });
+        //the length of all possibilities multiplied together
+        const expectedResultNumber = Object.values(allDayPossibilities).reduce((acc, possibilities) => acc * possibilities.length, 1);
         console.log(`Estimated number of results is ${expectedResultNumber}`);
+        return;
         const schedules = [];
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
-        for (const mondayShift of mondayPossibilities) {
+        for (const mondayShift of allDayPossibilities["Monday"]) {
             let names: string[] = [];
             const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
             names = names.concat(mondayNames);
-            
-            if(maxTimeExceeded(maxTimeNumber, startTime)) {
+
+            if (maxTimeExceeded(maxTimeNumber, startTime)) {
                 setWarningText("Elapsed Time has exceeded max time");
                 break;
             }
@@ -225,21 +204,21 @@ const ViewSchedule = () => {
                 console.log("Exceeded Max Shifts M");
                 continue;
             }
-            for (const tuesdayShift of tuesdayPossibilities) {
+            for (const tuesdayShift of allDayPossibilities["Tuesday"]) {
                 const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
                 names = names.concat(tuesdayNames);
-                if(maxTimeExceeded(maxTimeNumber, startTime)) {
+                if (maxTimeExceeded(maxTimeNumber, startTime)) {
                     setWarningText("Elapsed Time has exceeded max time");
                     break;
                 }
                 if (exceedHourLimit(names, maxShiftsNumber)) {
-                        console.log("Exceeded Max Shifts T");
-                        continue;
+                    console.log("Exceeded Max Shifts T");
+                    continue;
                 }
-                for (const wednesdayShift of wednesdayPossibilities) {
+                for (const wednesdayShift of allDayPossibilities["Wednesday"]) {
                     const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
                     names = names.concat(wednesdayNames);
-                    if(maxTimeExceeded(maxTimeNumber, startTime)) {
+                    if (maxTimeExceeded(maxTimeNumber, startTime)) {
                         setWarningText("Elapsed Time has exceeded max time");
                         break;
                     }
@@ -247,10 +226,10 @@ const ViewSchedule = () => {
                         console.log("Exceeded Max Shifts W");
                         continue;
                     }
-                    for (const thursdayShift of thursdayPossibilities) {
+                    for (const thursdayShift of allDayPossibilities["Thursday"]) {
                         const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
                         names = names.concat(thursdayNames);
-                        if(maxTimeExceeded(maxTimeNumber, startTime)) {
+                        if (maxTimeExceeded(maxTimeNumber, startTime)) {
                             setWarningText("Elapsed Time has exceeded max time");
                             break;
                         }
@@ -258,10 +237,10 @@ const ViewSchedule = () => {
                             console.log("Exceeded Max Shifts H");
                             continue;
                         }
-                        for (const fridayShift of fridayPossibilities) {
+                        for (const fridayShift of allDayPossibilities["Friday"]) {
                             const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
                             names = names.concat(fridayNames);
-                            if(maxTimeExceeded(maxTimeNumber, startTime)) {
+                            if (maxTimeExceeded(maxTimeNumber, startTime)) {
                                 setWarningText("Elapsed Time has exceeded max time");
                                 break;
                             }
@@ -277,27 +256,27 @@ const ViewSchedule = () => {
                                 "Friday": fridayShift
                             };
                             schedules.push(schedule);
-                            if(maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "F")) {
+                            if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "F")) {
                                 setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
                                 break;
                             }
                         }
-                        if(maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "H")) {
+                        if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "H")) {
                             setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
                             break;
                         }
                     }
-                    if(maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "W")) {
+                    if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "W")) {
                         setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
                         break;
                     }
                 }
-                if(maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "T")) {
+                if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "T")) {
                     setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
                     break;
                 }
             }
-            if(maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "M")) {
+            if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "M")) {
                 setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
                 break;
             }
@@ -382,7 +361,7 @@ const ViewSchedule = () => {
             }
         }
 
-        
+
         return allDayPossibilities;
     }
 
@@ -462,7 +441,7 @@ const ViewSchedule = () => {
     }
 
     function getDropDown(id: string) {
-        if(isLoading || savedMentors === undefined) {
+        if (isLoading || savedMentors === undefined) {
             return "";
         }
         const day = id.split("-")[0];
