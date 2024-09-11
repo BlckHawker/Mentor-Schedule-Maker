@@ -10,6 +10,8 @@ const ViewSchedule = () => {
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
     let startStopwatch = false;
     let startTime: number;
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
     const [maxTimeBoolean, setMaxTimeBoolean] = useState(false);
     const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true);
     const [maxTimeString, setMaxTimeString] = useState("1");
@@ -54,78 +56,24 @@ const ViewSchedule = () => {
 
             <h2>Filters</h2>
             <table>
-                <tr>
-                    <td></td>
-                    <td>Monday</td>
-                    <td>Tuesday</td>
-                    <td>Wednesday</td>
-                    <td>Thursday</td>
-                    <td>Friday</td>
-                </tr>
-                <tr>
-                    <td>10</td>
-                    <td>{getDropDown("Monday-10")}</td>
-                    <td>{getDropDown("Tuesday-10")}</td>
-                    <td>{getDropDown("Wednesday-10")}</td>
-                    <td>{getDropDown("Thursday-10")}</td>
-                    <td>{getDropDown("Friday-10")}</td>
-                </tr>
-                <tr>
-                    <td>11</td>
-                    <td>{getDropDown("Monday-11")}</td>
-                    <td>{getDropDown("Tuesday-11")}</td>
-                    <td>{getDropDown("Wednesday-11")}</td>
-                    <td>{getDropDown("Thursday-11")}</td>
-                    <td>{getDropDown("Friday-11")}</td>
-                </tr>
-                <tr>
-                    <td>12</td>
-                    <td>{getDropDown("Monday-12")}</td>
-                    <td>{getDropDown("Tuesday-12")}</td>
-                    <td>{getDropDown("Wednesday-12")}</td>
-                    <td>{getDropDown("Thursday-12")}</td>
-                    <td>{getDropDown("Friday-12")}</td>
-                </tr>
-                <tr>
-                    <td>1</td>
-                    <td>{getDropDown("Monday-1")}</td>
-                    <td>{getDropDown("Tuesday-1")}</td>
-                    <td>{getDropDown("Wednesday-1")}</td>
-                    <td>{getDropDown("Thursday-1")}</td>
-                    <td>{getDropDown("Friday-1")}</td>
-                </tr>
-                <tr>
-                    <td>2</td>
-                    <td>{getDropDown("Monday-2")}</td>
-                    <td>{getDropDown("Tuesday-2")}</td>
-                    <td>{getDropDown("Wednesday-2")}</td>
-                    <td>{getDropDown("Thursday-2")}</td>
-                    <td>{getDropDown("Friday-2")}</td>
-                </tr>
-                <tr>
-                    <td>3</td>
-                    <td>{getDropDown("Monday-3")}</td>
-                    <td>{getDropDown("Tuesday-3")}</td>
-                    <td>{getDropDown("Wednesday-3")}</td>
-                    <td>{getDropDown("Thursday-3")}</td>
-                    <td>{getDropDown("Friday-3")}</td>
-                </tr>
-                <tr>
-                    <td>4</td>
-                    <td>{getDropDown("Monday-4")}</td>
-                    <td>{getDropDown("Tuesday-4")}</td>
-                    <td>{getDropDown("Wednesday-4")}</td>
-                    <td>{getDropDown("Thursday-4")}</td>
-                    <td>{getDropDown("Friday-4")}</td>
-                </tr>
-                <tr>
-                    <td>5</td>
-                    <td>{getDropDown("Monday-5")}</td>
-                    <td>{getDropDown("Tuesday-5")}</td>
-                    <td>{getDropDown("Wednesday-5")}</td>
-                    <td>{getDropDown("Thursday-5")}</td>
-                    <td>{getDropDown("Friday-5")}</td>
-                </tr>
+                <thead>
+                    <tr>
+                        <th></th>
+                        {days.map(day => <th key={day}>{day}</th>)}
+                    </tr>
+                </thead>
+                <tbody>
+                    {times.map(time => (
+                        <tr key={time}>
+                            <td>{time}</td>
+                            {days.map(day => (
+                                <td key={`${day}-${time}`}>
+                                    {getDropDown(`${day}-${time}`)}
+                                </td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
             </table>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}></IndividualSchedule>)}
@@ -159,9 +107,6 @@ const ViewSchedule = () => {
         }
         //get new filters
         const filters: FilterInterface[] = [];
-
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-        const times = ["10", "11", "12", "1", "2", "3", "4", "5"]
 
         for (const selectedDay of days) {
             for (const selectedTime of times) {
