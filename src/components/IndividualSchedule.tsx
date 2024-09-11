@@ -1,84 +1,35 @@
 "use client";
+import { Day } from "@/app/interface/Day";
 import { Schedule } from "@/app/interface/Schedule";
 
-
-const IndividualSchedule = (props: Schedule) => {
+interface Props {
+    schedule: Schedule;
+    days: (keyof Schedule)[];
+    times: (keyof Day)[];
+}
+const IndividualSchedule = (props: Props) => {
     //assumes there is only one person on shift
     return (
         <div>
             <table>
-                <tr>
-                    <td></td>
-                    <td>Monday</td>
-                    <td>Tuesday</td>
-                    <td>Wednesday</td>
-                    <td>Thursday</td>
-                    <td>Friday</td>
-                </tr>
-                <tr>
-                    <td>10am</td>
-                    <td>{props.Monday["10"][0]}</td>
-                    <td>{props.Tuesday["10"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>11am</td>
-                    <td>{props.Monday["11"][0]}</td>
-                    <td>{props.Tuesday["11"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>12pm</td>
-                    <td>{props.Monday["12"][0]}</td>
-                    <td>{props.Tuesday["12"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>1pm</td>
-                    <td>{props.Monday["1"][0]}</td>
-                    <td>{props.Tuesday["1"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>2pm</td>
-                    <td>{props.Monday["2"][0]}</td>
-                    <td>{props.Tuesday["2"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>3pm</td>
-                    <td>{props.Monday["3"][0]}</td>
-                    <td>{props.Tuesday["3"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>4pm</td>
-                    <td>{props.Monday["4"][0]}</td>
-                    <td>{props.Tuesday["4"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>
-                <tr>
-                    <td>5pm</td>
-                    <td>{props.Monday["5"][0]}</td>
-                    <td>{props.Tuesday["5"][0]}</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                    <td>unfinished</td>
-                </tr>                
+                <thead>
+                    <tr>
+                        <td></td>
+                        {props.days.map(day => (
+                            <td key={day}>{day}</td>
+                        ))}
+                    </tr>
+                </thead>
+                <tbody>
+                    {props.times.map(time => (
+                        <tr key={time}>
+                            <td>{time}</td>
+                            {props.days.map(day => (
+                                <td key={day}>{props.schedule[day][time][0]}</td>
+                            ))}
+                        </tr>
+                    ))}
+                </tbody>
             </table>
         </div>
     );

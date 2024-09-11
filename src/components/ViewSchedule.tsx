@@ -76,7 +76,7 @@ const ViewSchedule = () => {
                 </tbody>
             </table>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
-            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule {...schedule}/>)}
+            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule schedule={schedule} days={days} times={times}/>)}
             <p>{warningText}</p>
         </div>
     );
@@ -133,7 +133,6 @@ const ViewSchedule = () => {
         //the length of all possibilities multiplied together
         const expectedResultNumber = Object.values(allDayPossibilities).reduce((acc, possibilities) => acc * possibilities.length, 1);
         console.log(`Estimated number of results is ${expectedResultNumber}`);
-        return;
         const schedules = [];
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
