@@ -110,6 +110,11 @@ const ViewSchedule = () => {
             return;
         }
 
+        if(savedMentorNames.length > 40) {
+            setWarningText(`Impossible to have ${savedMentorNames.length} mentors have at least one shift`)
+            return;
+        }
+
         //get new filters
         const filters: FilterInterface[] = [];
 

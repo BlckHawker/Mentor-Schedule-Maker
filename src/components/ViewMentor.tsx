@@ -6,7 +6,6 @@ import Mentor from "@/components/Mentor";
 const ViewClient = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
-    const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
@@ -30,6 +29,7 @@ const ViewClient = () => {
     return (
         <div>
             <h2>Mentors</h2>
+            <p>Saved mentors: {savedMentors.length}</p>
             {savedMentors.map(m => <Mentor name={m.name} availability={m.availability}></Mentor>)}
         </div>
     );
