@@ -33,18 +33,19 @@
 ### Generating Schedules (Kovu)
 - [x] Navbar
 - [x] Max Hours allowed
+    - [ ] If the amount of mentors multiplied by the max amount of hours is less than 40, show a warning
 - [x] Number of schedules to generate
     - [x] 30 default, no cap (optional) (implemented, but not fully tested since generation takes too long)
     - [x] Time cap(optional) in minutes (int)
 - [x] Generate button
 - [ ] Schedules are generated and displayed below the button
-    - [ ] Have each person have their own color from a list of colors (max 40)
+    - [ ] Have each person have their own color from a list of colors (max 120)
 - [ ] If the estimated # of results is a very large number (internally parametrized) with no max time given, give a warning if people want to continue with the generation or not
 - [x] Add a chime when the generating finishes
     -[ ] Change chime so it doesn't give people a heart attack
 - [x] change filters to be similar shape of the calendar (in order to avoid filter conflicts)
 - [x] Have filter drop downs only show when certain people are available 
-- [ ] Have a checkbox that will force every mentor to get at least one shift (initially on)
+- [x] Have a checkbox that will force every mentor to get at least one shift (initially on)
     - [ ] If there are more than 40 mentors, show a error saying that it's not possible
 - [ ] Fix the "syntax" errors
 - [ ] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)

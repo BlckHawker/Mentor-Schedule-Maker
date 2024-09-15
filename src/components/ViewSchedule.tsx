@@ -12,6 +12,7 @@ const ViewSchedule = () => {
     let startTime: number;
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
+    const [forceAllMentorsBoolean, setForceAllMentorsBoolean] = useState(true);
     const [maxTimeBoolean, setMaxTimeBoolean] = useState(false);
     const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true);
     const [maxTimeString, setMaxTimeString] = useState("1");
@@ -42,6 +43,9 @@ const ViewSchedule = () => {
     return (
         <div>
             <NavBar />
+            <h4>Force All Mentors</h4>
+            <input type="checkbox" checked={forceAllMentorsBoolean} onChange={e => setForceAllMentorsBoolean(e.target.checked)} />
+            <p>Only gives schedules where all mentors have at least one shift</p>
             <h4>Max Shifts</h4>
             <p>The max amount of shifts each mentor is allowed to work in a week</p>
             <input type="text" value={maxShiftsString} onChange={e => setMaxShiftsString(e.target.value)}></input>
@@ -138,8 +142,18 @@ const ViewSchedule = () => {
         function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): any {
             //base case: Friday has been processed
             if(dayIndex >= days.length) {
-                schedules.push(currentSchedule);
-                console.log(currentSchedule);
+                if(forceAllMentorsBoolean) {
+                    const allMentorNames = Object.values(savedMentors).map(mentor => mentor.name);
+                    const peopleCount = allMentorNames.map(name => itemCounter(scheduleNameList, name));
+                    if(peopleCount.every(num => num > 0)) {
+                        schedules.push(currentSchedule);
+                    }
+                }
+
+                else {
+                    schedules.push(currentSchedule);
+                }
+                
                 return currentSchedule;
             }
     
@@ -293,6 +307,7 @@ const ViewSchedule = () => {
         const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
         return peopleCount.some(num => num > maxShiftsNumber);
     }
+
 
     //find the least amount of times None appears in a day
     function findLeastNoneShifts(allDayShifts: Day[]) {
