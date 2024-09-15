@@ -50,5 +50,5 @@
 - [ ] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
 - [x] Refactor Generate Schedules into a recursive method
 - [ ] Refactor getDayShifts
-    - [ ] make the nested for loops a recursive method
+    - [x] make the nested for loops a recursive method
         - [ ] remove any day possibilities where people are working more than the max amount of shifts (make removeMaxHoursExceededDays redundant)

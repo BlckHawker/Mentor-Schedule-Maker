@@ -219,10 +219,8 @@ const ViewSchedule = () => {
             return {...obj, [time]: getAllTimeShifts(specifiedDay, times.indexOf(time))}
         }, {});
 
-        // All of the possible ways to configure a day (assumes having 0-1 mentors per shift)
+        // All of the possible ways to configure a day (assumes having 1 mentor per shift)
         const allDayPossibilities: Day[] = [];
-
-        const newAllDayPossibilities: Day[] = [];
 
         // Todo: refactor this so in the rare case this does happen, make it so this error is handled
         if (Object.values(allAvailableMentors).some(v => v === undefined)) {
@@ -230,35 +228,21 @@ const ViewSchedule = () => {
             return [];
         }
 
-        //! There has to be an easier way to do this
-        for (const tenShift of allAvailableMentors["10"]) {
-            for (const elevenShift of allAvailableMentors["11"]) {
-                for (const twelveShift of allAvailableMentors["12"]) {
-                    for (const oneShift of allAvailableMentors["1"]) {
-                        for (const twoShift of allAvailableMentors["2"]) {
-                            for (const threeShift of allAvailableMentors["3"]) {
-                                for (const fourShift of allAvailableMentors["4"]) {
-                                    for (const fiveShift of allAvailableMentors["5"]) {
-                                        const day: Day = {
-                                            '10': [tenShift],
-                                            '11': [elevenShift],
-                                            '12': [twelveShift],
-                                            '1': [oneShift],
-                                            '2': [twoShift],
-                                            '3': [threeShift],
-                                            '4': [fourShift],
-                                            '5': [fiveShift],
-                                        }
-                                        allDayPossibilities.push(day);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+        function getAllDayPossibilities(timeIndex: number, currentDaySchedule: any) {
+            //base case 5pm has been processed
+            if(timeIndex >= times.length) {
+                allDayPossibilities.push(currentDaySchedule);
+                return currentDaySchedule;
+            }
+
+            const time = times[timeIndex];
+            for(const shift of allAvailableMentors[time]) {
+                const newSchedule = {...currentDaySchedule, [time]: [shift]};
+                getAllDayPossibilities(timeIndex + 1, newSchedule);
             }
         }
 
+        getAllDayPossibilities(0, {});
 
         return allDayPossibilities;
     }
@@ -291,17 +275,11 @@ const ViewSchedule = () => {
         return arr.filter((x) => x === value).length;
     };
 
-    function removeDuplicateStrings(arr: string[]) {
-        return arr.filter((item: any,
-            index: number) => arr.indexOf(item) === index);
-    }
-
     function exceedHourLimit(people: string[], maxShiftsNumber: number) {
         //assumes there is only one mentor on shift
         const peopleCount = savedMentorNames.map(name => itemCounter(people, name));
         return peopleCount.some(num => num > maxShiftsNumber);
     }
-
 
     //find the least amount of times None appears in a day
     function findLeastNoneShifts(allDayShifts: Day[]) {
