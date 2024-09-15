@@ -137,59 +137,59 @@ const ViewSchedule = () => {
 
         //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
         for (const mondayShift of allDayPossibilities["Monday"]) {
-            let names: string[] = [];
             const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
-            names = names.concat(mondayNames);
+            let scheduleNamesM = mondayNames;
 
             if (maxTimeExceeded(maxTimeNumber, startTime)) {
                 setWarningText("Elapsed Time has exceeded max time");
                 break;
             }
-            if (exceedHourLimit(names, maxShiftsNumber)) {
+            if (exceedHourLimit(scheduleNamesM, maxShiftsNumber)) {
                 console.log("Exceeded Max Shifts M");
                 continue;
             }
             for (const tuesdayShift of allDayPossibilities["Tuesday"]) {
                 const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
-                names = names.concat(tuesdayNames);
+                let scheduleNamesT = scheduleNamesM.concat(tuesdayNames);
                 if (maxTimeExceeded(maxTimeNumber, startTime)) {
                     setWarningText("Elapsed Time has exceeded max time");
                     break;
                 }
-                if (exceedHourLimit(names, maxShiftsNumber)) {
+                if (exceedHourLimit(scheduleNamesT, maxShiftsNumber)) {
                     console.log("Exceeded Max Shifts T");
                     continue;
                 }
                 for (const wednesdayShift of allDayPossibilities["Wednesday"]) {
                     const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
-                    names = names.concat(wednesdayNames);
+                    let scheduleNamesW = scheduleNamesT.concat(wednesdayNames);
+
                     if (maxTimeExceeded(maxTimeNumber, startTime)) {
                         setWarningText("Elapsed Time has exceeded max time");
                         break;
                     }
-                    if (exceedHourLimit(names, maxShiftsNumber)) {
+                    if (exceedHourLimit(scheduleNamesW, maxShiftsNumber)) {
                         console.log("Exceeded Max Shifts W");
                         continue;
                     }
                     for (const thursdayShift of allDayPossibilities["Thursday"]) {
                         const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
-                        names = names.concat(thursdayNames);
+                        let scheduleNamesH = scheduleNamesT.concat(thursdayNames);
                         if (maxTimeExceeded(maxTimeNumber, startTime)) {
                             setWarningText("Elapsed Time has exceeded max time");
                             break;
                         }
-                        if (exceedHourLimit(names, maxShiftsNumber)) {
+                        if (exceedHourLimit(scheduleNamesH, maxShiftsNumber)) {
                             console.log("Exceeded Max Shifts H");
                             continue;
                         }
                         for (const fridayShift of allDayPossibilities["Friday"]) {
                             const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
-                            names = names.concat(fridayNames);
+                            let scheduleNamesF = scheduleNamesT.concat(fridayNames);
                             if (maxTimeExceeded(maxTimeNumber, startTime)) {
                                 setWarningText("Elapsed Time has exceeded max time");
                                 break;
                             }
-                            if (exceedHourLimit(names, maxShiftsNumber)) {
+                            if (exceedHourLimit(scheduleNamesF, maxShiftsNumber)) {
                                 console.log("Exceeded Max Shifts F");
                                 continue;
                             }
