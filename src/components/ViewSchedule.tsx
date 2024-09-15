@@ -8,8 +8,6 @@ import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const ViewSchedule = () => {
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
-    let startStopwatch = false;
-    let startTime: number;
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
     const [forceAllMentorsBoolean, setForceAllMentorsBoolean] = useState(true);
@@ -130,10 +128,9 @@ const ViewSchedule = () => {
         const allDayPossibilities: { [key: string]: Day[] } = {};
 
         days.forEach(day => {
-            let possibilities = getDayShifts(day);
+            let possibilities = getDayShifts(day, maxShiftsNumber);
             possibilities = findLeastNoneShifts(possibilities);
             possibilities = applyCustomFilters(possibilities, day, filters);
-            possibilities = removeMaxHoursExceededDays(possibilities, maxShiftsNumber);
             allDayPossibilities[day] = possibilities;
             console.log(possibilities);
         });
@@ -208,7 +205,7 @@ const ViewSchedule = () => {
     }
 
     //get all the shifts for a specific day
-    function getDayShifts(specifiedDay: string): Day[] {
+    function getDayShifts(specifiedDay: string, maxShiftsNumber: number): Day[] {
         if (savedMentors === undefined) {
             setWarningText(`There was an error getting day shifts for ${specifiedDay}`)
             return [];
@@ -231,7 +228,10 @@ const ViewSchedule = () => {
         function getAllDayPossibilities(timeIndex: number, currentDaySchedule: any) {
             //base case 5pm has been processed
             if(timeIndex >= times.length) {
-                allDayPossibilities.push(currentDaySchedule);
+                const names = Object.values(currentDaySchedule).flatMap(arr => arr) as unknown as string[];
+                if(!exceedHourLimit(names, maxShiftsNumber)) {
+                    allDayPossibilities.push(currentDaySchedule);
+                }
                 return currentDaySchedule;
             }
 
@@ -243,7 +243,6 @@ const ViewSchedule = () => {
         }
 
         getAllDayPossibilities(0, {});
-
         return allDayPossibilities;
     }
 
@@ -304,15 +303,6 @@ const ViewSchedule = () => {
             filteredDays = filteredDays.filter(day => day[filter.selectedTime as keyof Day].includes(filter.selectedMentor));
         }
 
-        return filteredDays;
-    }
-
-    //remove any day possibilities in which the max hours were exceeded
-    function removeMaxHoursExceededDays(allDayShifts: Day[], maxShiftsNumber: number) {
-        const filteredDays = allDayShifts.filter(shift => {
-            const names = Object.values(shift).flatMap(arr => arr) as unknown as string[];
-            return !exceedHourLimit(names, maxShiftsNumber);
-        });
         return filteredDays;
     }
 
