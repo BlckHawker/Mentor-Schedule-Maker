@@ -38,11 +38,17 @@
     - [x] Time cap(optional) in minutes (int)
 - [x] Generate button
 - [ ] Schedules are generated and displayed below the button
-- [ ] If the estimated # of results is a very large number (internally parametrized), give a warning if people want to continue with the generation or not
+    - [ ] Have each person have their own color from a list of colors (max 40)
+- [ ] If the estimated # of results is a very large number (internally parametrized) with no max time given, give a warning if people want to continue with the generation or not
 - [x] Add a chime when the generating finishes
     -[ ] Change chime so it doesn't give people a heart attack
 - [x] change filters to be similar shape of the calendar (in order to avoid filter conflicts)
 - [x] Have filter drop downs only show when certain people are available 
-- [ ] Have a checkbox that will prioritize people who don't have as much availability
+- [ ] Have a checkbox that will force every mentor to get at least one shift (initially on)
+    - [ ] If there are more than 40 mentors, show a error saying that it's not possible
 - [ ] Fix the "syntax" errors
-- [ ] Add threading so a timer of how long generation is has been appears
+- [ ] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
+- [x] Refactor Generate Schedules into a recursive method
+- [ ] Refactor getDayShifts
+    - [ ] make the nested for loops a recursive method
+        - [ ] remove any day possibilities where people are working more than the max amount of shifts

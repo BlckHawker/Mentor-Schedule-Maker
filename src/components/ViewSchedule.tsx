@@ -133,99 +133,44 @@ const ViewSchedule = () => {
         //the length of all possibilities multiplied together
         const expectedResultNumber = Object.values(allDayPossibilities).reduce((acc, possibilities) => acc * possibilities.length, 1);
         console.log(`Estimated number of results is ${expectedResultNumber}`);
-        const schedules = [];
+        const schedules = [] as any[];
 
-        //assuming there is only one mentor per shift, verify that nobody is working more than 4 shifts
-        for (const mondayShift of allDayPossibilities["Monday"]) {
-            const mondayNames = Object.values(mondayShift).flatMap(arr => arr) as unknown as string[];
-            let scheduleNamesM = mondayNames;
-
-            if (maxTimeExceeded(maxTimeNumber, startTime)) {
-                setWarningText("Elapsed Time has exceeded max time");
-                break;
+        function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): any {
+            //base case: Friday has been processed
+            if(dayIndex >= days.length) {
+                schedules.push(currentSchedule);
+                console.log(currentSchedule);
+                return currentSchedule;
             }
-            if (exceedHourLimit(scheduleNamesM, maxShiftsNumber)) {
-                console.log("Exceeded Max Shifts M");
-                continue;
-            }
-            for (const tuesdayShift of allDayPossibilities["Tuesday"]) {
-                const tuesdayNames = Object.values(tuesdayShift).flatMap(arr => arr) as unknown as string[];
-                let scheduleNamesT = scheduleNamesM.concat(tuesdayNames);
+    
+            const day = days[dayIndex];
+            for(const shift of allDayPossibilities[day]) {
+                
                 if (maxTimeExceeded(maxTimeNumber, startTime)) {
                     setWarningText("Elapsed Time has exceeded max time");
                     break;
                 }
-                if (exceedHourLimit(scheduleNamesT, maxShiftsNumber)) {
-                    console.log("Exceeded Max Shifts T");
-                    continue;
-                }
-                for (const wednesdayShift of allDayPossibilities["Wednesday"]) {
-                    const wednesdayNames = Object.values(wednesdayShift).flatMap(arr => arr) as unknown as string[];
-                    let scheduleNamesW = scheduleNamesT.concat(wednesdayNames);
 
-                    if (maxTimeExceeded(maxTimeNumber, startTime)) {
-                        setWarningText("Elapsed Time has exceeded max time");
-                        break;
-                    }
-                    if (exceedHourLimit(scheduleNamesW, maxShiftsNumber)) {
-                        console.log("Exceeded Max Shifts W");
-                        continue;
-                    }
-                    for (const thursdayShift of allDayPossibilities["Thursday"]) {
-                        const thursdayNames = Object.values(thursdayShift).flatMap(arr => arr) as unknown as string[];
-                        let scheduleNamesH = scheduleNamesT.concat(thursdayNames);
-                        if (maxTimeExceeded(maxTimeNumber, startTime)) {
-                            setWarningText("Elapsed Time has exceeded max time");
-                            break;
-                        }
-                        if (exceedHourLimit(scheduleNamesH, maxShiftsNumber)) {
-                            console.log("Exceeded Max Shifts H");
-                            continue;
-                        }
-                        for (const fridayShift of allDayPossibilities["Friday"]) {
-                            const fridayNames = Object.values(fridayShift).flatMap(arr => arr) as unknown as string[];
-                            let scheduleNamesF = scheduleNamesT.concat(fridayNames);
-                            if (maxTimeExceeded(maxTimeNumber, startTime)) {
-                                setWarningText("Elapsed Time has exceeded max time");
-                                break;
-                            }
-                            if (exceedHourLimit(scheduleNamesF, maxShiftsNumber)) {
-                                console.log("Exceeded Max Shifts F");
-                                continue;
-                            }
-                            const schedule = {
-                                "Monday": mondayShift,
-                                "Tuesday": tuesdayShift,
-                                "Wednesday": wednesdayShift,
-                                "Thursday": thursdayShift,
-                                "Friday": fridayShift
-                            };
-                            schedules.push(schedule);
-                            if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "F")) {
-                                setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
-                                break;
-                            }
-                        }
-                        if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "H")) {
-                            setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
-                            break;
-                        }
-                    }
-                    if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "W")) {
-                        setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
-                        break;
-                    }
-                }
-                if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "T")) {
+                if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length)) {
                     setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
                     break;
                 }
-            }
-            if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length, "M")) {
-                setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
-                break;
+
+                const shiftNames =  Object.values(shift).flatMap(arr => arr) as unknown as string[];
+                const newScheduleNameList = scheduleNameList.concat(shiftNames);
+    
+                const newSchedule = {...currentSchedule, [day]: shift};
+                //verify that nobody has worked more than the max amount of hours
+                if (exceedHourLimit(newScheduleNameList, maxShiftsNumber)) {
+                    continue;
+                }
+
+                generateSchedulesRecursion(dayIndex + 1, newSchedule, newScheduleNameList);
             }
         }
+
+        generateSchedulesRecursion(0, {},[]);
+        console.log(schedules);
 
         const elapsedSeconds = getElapsedSeconds(startTime);
         const hours = Math.floor(elapsedSeconds / 3600);
@@ -253,7 +198,6 @@ const ViewSchedule = () => {
             setWarningText(`There was an error getting day shifts for ${specifiedDay}`)
             return [];
         }
-
 
         //all the mentors that are available some time on the specified day
         const allAvailableMentors: { [key: string]: string[] } = {
@@ -418,8 +362,7 @@ const ViewSchedule = () => {
         return maxTimeBoolean && minutes >= maxTimeNumber;
     }
 
-    function maxSchedulesExceeded(maxScheduleNumber: number, scheduleCount: number, str: string) {
-        console.log("Max Schedule", scheduleCount, str);
+    function maxSchedulesExceeded(maxScheduleNumber: number, scheduleCount: number) {
         return maxSchedulesBoolean && scheduleCount >= maxScheduleNumber;
     }
 }
