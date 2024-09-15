@@ -33,7 +33,6 @@
 ### Generating Schedules (Kovu)
 - [x] Navbar
 - [x] Max Hours allowed
-    - [ ] If the amount of mentors multiplied by the max amount of hours is less than 40, show a warning
 - [x] Number of schedules to generate
     - [x] 30 default, no cap (optional) (implemented, but not fully tested since generation takes too long)
     - [x] Time cap(optional) in minutes (int)
@@ -46,10 +45,10 @@
 - [x] change filters to be similar shape of the calendar (in order to avoid filter conflicts)
 - [x] Have filter drop downs only show when certain people are available 
 - [x] Have a checkbox that will force every mentor to get at least one shift (initially on)
-    - [ ] If there are more than 40 mentors, show a error saying that it's not possible
+    - [ ] If there are more than 40 mentors, show an error saying that it's not possible
 - [ ] Fix the "syntax" errors
 - [ ] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
 - [x] Refactor Generate Schedules into a recursive method
 - [ ] Refactor getDayShifts
     - [ ] make the nested for loops a recursive method
-        - [ ] remove any day possibilities where people are working more than the max amount of shifts
+        - [ ] remove any day possibilities where people are working more than the max amount of shifts (make removeMaxHoursExceededDays redundant)

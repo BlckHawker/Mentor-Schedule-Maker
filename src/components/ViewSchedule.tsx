@@ -20,6 +20,7 @@ const ViewSchedule = () => {
     const [maxShiftsString, setMaxShiftsString] = useState("4");
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>([]);
+    const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]);
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
     const [warningText, setWarningText] = useState("");
 
@@ -32,6 +33,7 @@ const ViewSchedule = () => {
             }
             const localStorageMentors = JSON.parse(str);
             setSavedMentors(localStorageMentors);
+            setSavedMentorNames(Object.values(localStorageMentors).map((mentor: any) => mentor.name));
             setIsLoading(false);
         }
         fetchData();
@@ -109,6 +111,7 @@ const ViewSchedule = () => {
             setWarningText("\"Max Schedules\" needs to be a number greater than 0");
             return;
         }
+
         //get new filters
         const filters: FilterInterface[] = [];
 
@@ -143,8 +146,7 @@ const ViewSchedule = () => {
             //base case: Friday has been processed
             if(dayIndex >= days.length) {
                 if(forceAllMentorsBoolean) {
-                    const allMentorNames = Object.values(savedMentors).map(mentor => mentor.name);
-                    const peopleCount = allMentorNames.map(name => itemCounter(scheduleNameList, name));
+                    const peopleCount = savedMentorNames.map(name => itemCounter(scheduleNameList, name));
                     if(peopleCount.every(num => num > 0)) {
                         schedules.push(currentSchedule);
                     }
@@ -184,7 +186,6 @@ const ViewSchedule = () => {
         }
 
         generateSchedulesRecursion(0, {},[]);
-        console.log(schedules);
 
         const elapsedSeconds = getElapsedSeconds(startTime);
         const hours = Math.floor(elapsedSeconds / 3600);
@@ -214,22 +215,16 @@ const ViewSchedule = () => {
         }
 
         //all the mentors that are available some time on the specified day
-        const allAvailableMentors: { [key: string]: string[] } = {
-            "10": getAllTimeShifts(specifiedDay, 0),
-            "11": getAllTimeShifts(specifiedDay, 1),
-            "12": getAllTimeShifts(specifiedDay, 2),
-            "1": getAllTimeShifts(specifiedDay, 3),
-            "2": getAllTimeShifts(specifiedDay, 4),
-            "3": getAllTimeShifts(specifiedDay, 5),
-            "4": getAllTimeShifts(specifiedDay, 6),
-            "5": getAllTimeShifts(specifiedDay, 7)
-        };
+        const allAvailableMentors: { [key: string]: string[] } = times.reduce(function(obj, time) {
+            return {...obj, [time]: getAllTimeShifts(specifiedDay, times.indexOf(time))}
+        }, {});
 
         // All of the possible ways to configure a day (assumes having 0-1 mentors per shift)
         const allDayPossibilities: Day[] = [];
 
+        const newAllDayPossibilities: Day[] = [];
+
         // Todo: refactor this so in the rare case this does happen, make it so this error is handled
-        // This should not happen
         if (Object.values(allAvailableMentors).some(v => v === undefined)) {
             console.log("A problem occurred");
             return [];
@@ -303,8 +298,7 @@ const ViewSchedule = () => {
 
     function exceedHourLimit(people: string[], maxShiftsNumber: number) {
         //assumes there is only one mentor on shift
-        const nonduplicatedPeople = removeDuplicateStrings(people).filter(name => name != "None");
-        const peopleCount = nonduplicatedPeople.map(name => itemCounter(people, name));
+        const peopleCount = savedMentorNames.map(name => itemCounter(people, name));
         return peopleCount.some(num => num > maxShiftsNumber);
     }
 
@@ -350,7 +344,7 @@ const ViewSchedule = () => {
         }
         const day = id.split("-")[0];
         const time = id.split("-")[1];
-        const timeIndex = ["10", "11", "12", "1", "2", "3", "4", "5"].indexOf(time);
+        const timeIndex = times.indexOf(time);
         const validMentors = savedMentors.filter(mentor => mentor.availability[day as keyof MentorInterface['availability']][timeIndex]);
         const names = validMentors.map(mentor => mentor.name);
         names.splice(0, 0, "Any");
