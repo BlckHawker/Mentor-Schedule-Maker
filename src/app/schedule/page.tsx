@@ -1,13 +1,10 @@
 
-//where schedules can be made/viewed
-
-import ViewSchedule from "@/components/ViewSchedule";
+//where schedules can be viewed
 
 export default function SchedulePage() {
   return (
       <div>
-        <h1>Schedule Page</h1>
-        <ViewSchedule></ViewSchedule>
+        <h1>View Schedule Page</h1>
       </div>
   );
 }

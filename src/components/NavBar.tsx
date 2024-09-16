@@ -7,7 +7,8 @@ const NavBar = () => {
             <Link href={"/mentor/create"}>Create Mentor</Link><br/>
             <Link href={"/mentor/edit"}>View/Edit mentor</Link><br/>
             <Link href={"/mentor"}>View all mentor availability</Link><br />
-            <Link href={"/schedule"}>Generate Schedule</Link>
+            <Link href={"/schedule/generate"}>Generate Schedule</Link> <br />
+            <Link href={"/schedule"}>View Schedules</Link>
 
         </div>
     );

@@ -38,7 +38,7 @@
     - [x] 30 default, no cap (optional) (implemented, but not fully tested since generation takes too long)
     - [x] Time cap(optional) in minutes (int)
 - [x] Generate button
-- [ ] Schedules are saved to local storage when done generating
+- [x] Schedules are saved to local storage when done generating
     - [ ] Add a link that will take the user to the "View Saved Schedules" page
 - [ ] If the estimated # of results is a very large number (internally parametrized) with no max time given, give a warning if people want to continue with the generation or not
 - [x] Add a chime when the generating finishes

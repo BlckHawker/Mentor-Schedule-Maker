@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
-const ViewSchedule = () => {
+const GenerateSchedule = () => {
     const pauseTime = 1;
     const maxSchedulesAllowed = 4294967295; //physically can't add anymore to an array 
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
@@ -33,6 +33,8 @@ const ViewSchedule = () => {
         async function fetchData() {
             setIsLoading(true);
             let str = localStorage.getItem("mentors");
+            console.log();
+
             if (str === "undefined" || str === null) {
                 str = "[]";
             }
@@ -44,6 +46,13 @@ const ViewSchedule = () => {
         fetchData();
     }, []);
 
+    //add schedules to local storage
+    useEffect(() => {
+        if(possibleSchedules !== undefined && possibleSchedules?.length > 0) {
+            localStorage.setItem("schedules", JSON.stringify(possibleSchedules));
+        }
+    }, [possibleSchedules])
+
     //update timer for generating schedules
     useEffect(() => {
         if(generatingSchedules) {
@@ -51,6 +60,8 @@ const ViewSchedule = () => {
             return () => {clearInterval(interval);}
         }
     }, [generatingSchedules]);
+
+    
 
     //assumes there is only one person on shift
     if (isLoading) {
@@ -412,4 +423,4 @@ const ViewSchedule = () => {
     }
 }
 
-export default ViewSchedule;
+export default GenerateSchedule;
