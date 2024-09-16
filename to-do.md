@@ -15,6 +15,7 @@
     - [ ] Grey if that time slot is unavailable
     - [ ] Green if available
 - [ ] Text bar for name
+    - [ ] "None" is a forbidden name
     - [ ] Names have to be unique 
     - [ ] force people to put first and last names
 - [ ] Submit button
@@ -61,9 +62,9 @@
 
 
 ### View Saved Schedules (Kovu)
-- [ ] Loads schedules from local storage
+- [x] Loads schedules from local storage
 - [ ] Show X schedules at a time, and have a next / previous button to see other schedules
-- [ ] Make people have color codes
-    - [ ] Have each person have their own color from a list of colors (max 120)
+- [x] Make people have color codes
+    - [x] Have each person have their own color from a list of colors (max 120)
 - [ ] Have a button that will download a schedule to PDF
 - [ ] Have filters (similar to generation) to show schedules that meet said filters

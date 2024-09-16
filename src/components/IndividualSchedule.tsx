@@ -6,6 +6,9 @@ interface Props {
     schedule: Schedule;
     days: (keyof Schedule)[];
     times: (keyof Day)[];
+    mentorNames: string[],
+    colorDictionary: { name: string, color: string }[]
+
 }
 const IndividualSchedule = (props: Props) => {
     //assumes there is only one person on shift
@@ -25,7 +28,7 @@ const IndividualSchedule = (props: Props) => {
                         <tr key={time}>
                             <td>{time}</td>
                             {props.days.map(day => (
-                                <td key={day}>{props.schedule[day][time][0]}</td>
+                                <td key={day} style={{backgroundColor: props.colorDictionary.find(obj => obj.name === props.schedule[day][time][0])?.color}}>{props.schedule[day][time][0]}</td>
                             ))}
                         </tr>
                     ))}

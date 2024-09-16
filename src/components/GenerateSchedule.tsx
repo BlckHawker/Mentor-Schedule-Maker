@@ -33,7 +33,6 @@ const GenerateSchedule = () => {
         async function fetchData() {
             setIsLoading(true);
             let str = localStorage.getItem("mentors");
-            console.log();
 
             if (str === "undefined" || str === null) {
                 str = "[]";
