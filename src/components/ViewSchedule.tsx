@@ -97,8 +97,8 @@ const ViewSchedule = () => {
             </table>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {generatingSchedules && <div>
-                <p>Generating Schedules...{elapsedTime}s</p>
-                <p>Found {schedulesFound} schedules</p>
+                <p>Generating Schedules...{formatTime(elapsedTime)}</p>
+                <p>Found {numberWithCommas(schedulesFound)} schedules</p>
             </div>}
 
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule schedule={schedule} days={days} times={times} />)}
@@ -221,26 +221,46 @@ const ViewSchedule = () => {
         await generateSchedulesRecursion(0, {}, []);
 
         const elapsedSeconds = getElapsedSeconds(startTime);
-        const hours = Math.floor(elapsedSeconds / 3600);
-        const minutes = Math.floor((elapsedSeconds % 3600) / 60);
-        const secs = elapsedSeconds % 60;
 
-        setWarningText(`Found ${schedules.length} schedules in ${elapsedSeconds} seconds`)
-
-        // Pad hours, minutes, and seconds with leading zeros if necessary
-        const paddedHours = String(hours).padStart(2, '0');
-        const paddedMinutes = String(minutes).padStart(2, '0');
-        const paddedSeconds = String(secs).padStart(2, '0');
-
-        // Return formatted time string
-        console.log(`${paddedHours}:${paddedMinutes}:${paddedSeconds}`);
+        setWarningText(`Found ${numberWithCommas(schedules.length)} schedule(s) in ${formatTime(elapsedSeconds)}`)
         console.log("result", schedules);
         setPossibleSchedules(schedules);
 
-        //play sound to notify user that it's done
+        //play sound to notify user that generation is done
         new Audio(notifSound).play()
         setGeneratingSchedules(false);
+    }
 
+    //refactor number to have commas
+    function numberWithCommas (x: number) {
+        return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    //refactor elapsedSeconds to be days, hours, minutes, seconds
+    function formatTime(seconds: number) {
+        const days = Math.floor(seconds / 86400);
+        seconds = seconds % 86400;
+        const hours = Math.floor(seconds / 3600);
+        seconds = seconds % 3600;
+        const minutes = Math.floor(seconds / 60);
+        seconds = seconds % 60;
+
+        let str = ""
+        if(days > 0) {
+            str += `${days}d`;
+        }
+
+        if(days > 0 || hours > 0) {
+            str += ` ${hours}h`;
+        }
+
+        if(days > 0 || hours > 0 || minutes > 0) {
+            str += ` ${minutes}m`;
+        }
+
+        str += ` ${seconds}s`;
+
+        return str.trim();
     }
 
     //get all the shifts for a specific day

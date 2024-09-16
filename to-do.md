@@ -38,8 +38,8 @@
     - [x] 30 default, no cap (optional) (implemented, but not fully tested since generation takes too long)
     - [x] Time cap(optional) in minutes (int)
 - [x] Generate button
-- [ ] Schedules are generated and displayed below the button
-    - [ ] Have each person have their own color from a list of colors (max 120)
+- [ ] Schedules are saved to local storage when done generating
+    - [ ] Add a link that will take the user to the "View Saved Schedules" page
 - [ ] If the estimated # of results is a very large number (internally parametrized) with no max time given, give a warning if people want to continue with the generation or not
 - [x] Add a chime when the generating finishes
     - [ ] Change chime so it doesn't give people a heart attack
@@ -48,10 +48,22 @@
 - [x] Have a checkbox that will force every mentor to get at least one shift (initially on)
     - [x] If there are more than 40 mentors, show an error saying that it's not possible (assuming there is at max one mentor per shift)
 - [ ] Fix the "syntax" errors
-- [.] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
+- [x] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
 - [x] Refactor Generate Schedules into a recursive method
 - [x] Refactor getDayShifts
     - [x] make the nested for loops a recursive method
         - [x] remove any day possibilities where people are working more than the max amount of shifts (make removeMaxHoursExceededDays redundant)
 - [ ] Make warning text red
-- [ ] Possibly make warning text at the top of the screen
+- [ ] Possibly move warning text to the top of the screen
+- [ ] Have a parameter that will allow at most X mentors on one shift (internal max will be 3)
+    - [ ] Make it so 1 - 3 mentors can work one shift
+    - [ ] Add multiple filter dropdowns per shift depending on X
+
+
+### View Saved Schedules (Kovu)
+- [ ] Loads schedules from local storage
+- [ ] Show X schedules at a time, and have a next / previous button to see other schedules
+- [ ] Make people have color codes
+    - [ ] Have each person have their own color from a list of colors (max 120)
+- [ ] Have a button that will download a schedule to PDF
+- [ ] Have filters (similar to generation) to show schedules that meet said filters
