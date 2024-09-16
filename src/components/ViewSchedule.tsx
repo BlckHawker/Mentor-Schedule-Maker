@@ -7,9 +7,13 @@ import IndividualSchedule from "./IndividualSchedule";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const ViewSchedule = () => {
+    const pauseTime = 1;
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
+    const [startingTime, setStartingTime] = useState(0);
+    const [elapsedTime, setElapsedTime] = useState(0);
+    const [generatingSchedules, setGeneratingSchedules] = useState(false);
     const [forceAllMentorsBoolean, setForceAllMentorsBoolean] = useState(true);
     const [maxTimeBoolean, setMaxTimeBoolean] = useState(false);
     const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true);
@@ -22,6 +26,7 @@ const ViewSchedule = () => {
     const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
     const [warningText, setWarningText] = useState("");
 
+    //loading data from local storage
     useEffect(() => {
         async function fetchData() {
             setIsLoading(true);
@@ -36,6 +41,15 @@ const ViewSchedule = () => {
         }
         fetchData();
     }, []);
+
+    //update timer for generating schedules
+    useEffect(() => {
+        if(generatingSchedules) {
+            let interval = setInterval(() => setElapsedTime(Math.floor((Date.now() - startingTime) / 1000)), 1000);
+            return () => {clearInterval(interval);}
+        }
+    }, [generatingSchedules]);
+
     //assumes there is only one person on shift
     if (isLoading) {
         return <div>Loading...</div>;
@@ -80,12 +94,16 @@ const ViewSchedule = () => {
                 </tbody>
             </table>
             <button onClick={() => generateSchedules()}>Generate schedules</button>
-            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule schedule={schedule} days={days} times={times}/>)}
+            {generatingSchedules && <div>
+                <p>Generating Schedules...{elapsedTime}s</p>
+            </div>}
+
+            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule schedule={schedule} days={days} times={times} />)}
             <p>{warningText}</p>
         </div>
     );
 
-    function generateSchedules() {
+    async function generateSchedules() {
         setWarningText("");
         if (savedMentors.length === 0) {
             setWarningText("No mentors saved in local storage");
@@ -110,10 +128,16 @@ const ViewSchedule = () => {
             return;
         }
 
-        if(savedMentorNames.length > 40) {
+        if (forceAllMentorsBoolean && savedMentorNames.length > 40) {
             setWarningText(`Impossible to have ${savedMentorNames.length} mentors have at least one shift`)
             return;
         }
+
+        const startTime = new Date().getTime();
+        setStartingTime(startTime);
+        setElapsedTime(0);
+        setGeneratingSchedules(true);
+        await new Promise(r => setTimeout(r, pauseTime));
 
         //get new filters
         const filters: FilterInterface[] = [];
@@ -127,29 +151,34 @@ const ViewSchedule = () => {
             }
         }
 
-        const startTime = new Date().getTime();
-
         //get all of the possible shift (one mentor) for each block
         const allDayPossibilities: { [key: string]: Day[] } = {};
 
-        days.forEach(day => {
+        for (const day of days) {
+            await new Promise(r => setTimeout(r, pauseTime));
             let possibilities = getDayShifts(day, maxShiftsNumber);
             possibilities = findLeastNoneShifts(possibilities);
             possibilities = applyCustomFilters(possibilities, day, filters);
             allDayPossibilities[day] = possibilities;
-            console.log(possibilities);
-        });
+        }
+
         //the length of all possibilities multiplied together
         const expectedResultNumber = Object.values(allDayPossibilities).reduce((acc, possibilities) => acc * possibilities.length, 1);
         console.log(`Estimated number of results is ${expectedResultNumber}`);
         const schedules = [] as any[];
 
-        function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): any {
+        async function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): any {
+
+            //force to wait on Monday, Wednesday and Friday
+            if (dayIndex % 2 == 0) {
+                await new Promise(r => setTimeout(r, pauseTime));
+            }
+
             //base case: Friday has been processed
-            if(dayIndex >= days.length) {
-                if(forceAllMentorsBoolean) {
+            if (dayIndex >= days.length) {
+                if (forceAllMentorsBoolean) {
                     const peopleCount = savedMentorNames.map(name => itemCounter(scheduleNameList, name));
-                    if(peopleCount.every(num => num > 0)) {
+                    if (peopleCount.every(num => num > 0)) {
                         schedules.push(currentSchedule);
                     }
                 }
@@ -157,13 +186,13 @@ const ViewSchedule = () => {
                 else {
                     schedules.push(currentSchedule);
                 }
-                
+
                 return currentSchedule;
             }
-    
+
             const day = days[dayIndex];
-            for(const shift of allDayPossibilities[day]) {
-                
+            for (const shift of allDayPossibilities[day]) {
+
                 if (maxTimeExceeded(maxTimeNumber, startTime)) {
                     setWarningText("Elapsed Time has exceeded max time");
                     break;
@@ -174,20 +203,20 @@ const ViewSchedule = () => {
                     break;
                 }
 
-                const shiftNames =  Object.values(shift).flatMap(arr => arr) as unknown as string[];
+                const shiftNames = Object.values(shift).flatMap(arr => arr) as unknown as string[];
                 const newScheduleNameList = scheduleNameList.concat(shiftNames);
-    
-                const newSchedule = {...currentSchedule, [day]: shift};
+
+                const newSchedule = { ...currentSchedule, [day]: shift };
                 //verify that nobody has worked more than the max amount of hours
                 if (exceedHourLimit(newScheduleNameList, maxShiftsNumber)) {
                     continue;
                 }
 
-                generateSchedulesRecursion(dayIndex + 1, newSchedule, newScheduleNameList);
+                await generateSchedulesRecursion(dayIndex + 1, newSchedule, newScheduleNameList);
             }
         }
 
-        generateSchedulesRecursion(0, {},[]);
+        await generateSchedulesRecursion(0, {}, []);
 
         const elapsedSeconds = getElapsedSeconds(startTime);
         const hours = Math.floor(elapsedSeconds / 3600);
@@ -206,6 +235,7 @@ const ViewSchedule = () => {
 
         //play sound to notify user that it's done
         new Audio(notifSound).play()
+        setGeneratingSchedules(false);
 
     }
 
@@ -216,33 +246,34 @@ const ViewSchedule = () => {
             return [];
         }
 
-        //all the mentors that are available some time on the specified day
-        const allAvailableMentors: { [key: string]: string[] } = times.reduce(function(obj, time) {
-            return {...obj, [time]: getAllTimeShifts(specifiedDay, times.indexOf(time))}
-        }, {});
+        const allAvailableMentors: { [key: string]: string[] } = {}
+
+        for (const time of times) {
+            const timeShift = getAllTimeShifts(specifiedDay, times.indexOf(time));
+            // Todo: refactor this so in the rare case this does happen, make it so this error is handled
+            if (timeShift === undefined) {
+                console.log("A problem occurred");
+                return [];
+            }
+            allAvailableMentors[time] = timeShift;
+        }
 
         // All of the possible ways to configure a day (assumes having 1 mentor per shift)
         const allDayPossibilities: Day[] = [];
 
-        // Todo: refactor this so in the rare case this does happen, make it so this error is handled
-        if (Object.values(allAvailableMentors).some(v => v === undefined)) {
-            console.log("A problem occurred");
-            return [];
-        }
-
         function getAllDayPossibilities(timeIndex: number, currentDaySchedule: any) {
             //base case 5pm has been processed
-            if(timeIndex >= times.length) {
+            if (timeIndex >= times.length) {
                 const names = Object.values(currentDaySchedule).flatMap(arr => arr) as unknown as string[];
-                if(!exceedHourLimit(names, maxShiftsNumber)) {
+                if (!exceedHourLimit(names, maxShiftsNumber)) {
                     allDayPossibilities.push(currentDaySchedule);
                 }
                 return currentDaySchedule;
             }
 
             const time = times[timeIndex];
-            for(const shift of allAvailableMentors[time]) {
-                const newSchedule = {...currentDaySchedule, [time]: [shift]};
+            for (const shift of allAvailableMentors[time]) {
+                const newSchedule = { ...currentDaySchedule, [time]: [shift] };
                 getAllDayPossibilities(timeIndex + 1, newSchedule);
             }
         }
@@ -280,16 +311,24 @@ const ViewSchedule = () => {
     };
 
     function exceedHourLimit(people: string[], maxShiftsNumber: number) {
-        //assumes there is only one mentor on shift
-        const peopleCount = savedMentorNames.map(name => itemCounter(people, name));
-        return peopleCount.some(num => num > maxShiftsNumber);
+        const peopleAgg: { [person: string]: number } = {};
+        for (const person of people) {
+            if (!(person in peopleAgg)) {
+                peopleAgg[person] = 0;
+            }
+            peopleAgg[person]++;
+            if (peopleAgg[person] > maxShiftsNumber) {
+                return true;
+            }
+        }
+        return false;
     }
+
 
     //find the least amount of times None appears in a day
     function findLeastNoneShifts(allDayShifts: Day[]) {
         const noneShiftCount = allDayShifts.map((possibility: Day) => {
-            const names = Object.values(possibility).map(arr => arr[0]).filter(name => name === "None");
-            return names.length;
+            return Object.values(possibility).map(arr => arr[0]).filter(name => name === "None").length;
         });
 
         let smallestNumber = structuredClone(noneShiftCount).sort()[0];

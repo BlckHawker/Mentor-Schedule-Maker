@@ -48,8 +48,10 @@
 - [x] Have a checkbox that will force every mentor to get at least one shift (initially on)
     - [x] If there are more than 40 mentors, show an error saying that it's not possible (assuming there is at max one mentor per shift)
 - [ ] Fix the "syntax" errors
-- [ ] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
+- [.] Add threading (or make generateSchedules an async function) so a timer of how long generation is has been appears (along with how many schedules have been found)
 - [x] Refactor Generate Schedules into a recursive method
-- [ ] Refactor getDayShifts
+- [x] Refactor getDayShifts
     - [x] make the nested for loops a recursive method
         - [x] remove any day possibilities where people are working more than the max amount of shifts (make removeMaxHoursExceededDays redundant)
+- [ ] Make warning text red
+- [ ] Possibly make warning text at the top of the screen
