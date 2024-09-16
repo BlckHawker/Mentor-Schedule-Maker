@@ -10,8 +10,6 @@ interface Props {
     colorDictionary: Color[],
 }
 const IndividualSchedule = (props: Props) => {
-
-    console.log(props.colorDictionary);
     if (Object.values(props).some(v => !v)) {
         return <p></p>
     }

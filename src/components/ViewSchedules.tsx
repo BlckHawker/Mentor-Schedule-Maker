@@ -4,10 +4,10 @@ import NavBar from "./NavBar";
 import { Schedule } from "@/app/interface/Schedule";
 import IndividualSchedule from "./IndividualSchedule";
 import { Color } from "@/app/interface/Color";
+import ScheduleManager from "./ScheduleManager";
 
 
 const ViewSchedules = () => {
-    const schedulesPerPage = 3;
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
     const [isLoading, setIsLoading] = useState(false);
@@ -45,7 +45,7 @@ const ViewSchedules = () => {
             {savedSchedules && <p>{savedSchedules.length === 0 ? "No schedules saved in local storage" : `${savedSchedules.length} schedules found`}</p>}
 
             {/* Make one schedule */}
-            {savedSchedules && <IndividualSchedule schedule={savedSchedules[0]} days={days} times={times} colorDictionary={colorDictionary}/>}
+            {savedSchedules && <ScheduleManager savedSchedules={savedSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary} days={days} times={times}/>}
         </div>
     )
 }
