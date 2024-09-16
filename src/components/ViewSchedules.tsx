@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import NavBar from "./NavBar";
 import { Schedule } from "@/app/interface/Schedule";
-import IndividualSchedule from "./IndividualSchedule";
 import { Color } from "@/app/interface/Color";
 import ScheduleManager from "./ScheduleManager";
 

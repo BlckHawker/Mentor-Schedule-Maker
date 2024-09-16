@@ -52,8 +52,7 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: string, 
 
     if (mentors.length == 1) {
         const colorObj = colorDictionary.find((obj: any) => obj.name === schedule[day][time][0]);
-        const color = colorObj.color
-        return <td key={day} style={{ backgroundColor: color, color: colorObj.dark ? "white" : "black" }}>{mentors[0]}</td>
+        return <td key={day} style={{ backgroundColor: colorObj.color, color: colorObj.dark ? "white" : "black" }}>{mentors[0]}</td>
     }
 
     return <td key={day}>Not Implemented Yet</td>
