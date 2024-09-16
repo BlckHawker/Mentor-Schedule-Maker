@@ -8,9 +8,11 @@ import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const ViewSchedule = () => {
     const pauseTime = 1;
+    const maxSchedulesAllowed = 4294967295; //physically can't add anymore to an array 
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
+    const [schedulesFound, setSchedulesFound] = useState(0);
     const [startingTime, setStartingTime] = useState(0);
     const [elapsedTime, setElapsedTime] = useState(0);
     const [generatingSchedules, setGeneratingSchedules] = useState(false);
@@ -96,10 +98,12 @@ const ViewSchedule = () => {
             <button onClick={() => generateSchedules()}>Generate schedules</button>
             {generatingSchedules && <div>
                 <p>Generating Schedules...{elapsedTime}s</p>
+                <p>Found {schedulesFound} schedules</p>
             </div>}
 
             {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule schedule={schedule} days={days} times={times} />)}
             <p>{warningText}</p>
+
         </div>
     );
 
@@ -137,6 +141,7 @@ const ViewSchedule = () => {
         setStartingTime(startTime);
         setElapsedTime(0);
         setGeneratingSchedules(true);
+        setSchedulesFound(0);
         await new Promise(r => setTimeout(r, pauseTime));
 
         //get new filters
@@ -163,7 +168,7 @@ const ViewSchedule = () => {
         }
 
         //the length of all possibilities multiplied together
-        const expectedResultNumber = Object.values(allDayPossibilities).reduce((acc, possibilities) => acc * possibilities.length, 1);
+        const expectedResultNumber = Object.values(allDayPossibilities).reduce((preVal, possibilities) => preVal * possibilities.length, 1);
         console.log(`Estimated number of results is ${expectedResultNumber}`);
         const schedules = [] as any[];
 
@@ -187,19 +192,16 @@ const ViewSchedule = () => {
                     schedules.push(currentSchedule);
                 }
 
+                setSchedulesFound(schedules.length);
                 return currentSchedule;
             }
 
             const day = days[dayIndex];
             for (const shift of allDayPossibilities[day]) {
 
-                if (maxTimeExceeded(maxTimeNumber, startTime)) {
-                    setWarningText("Elapsed Time has exceeded max time");
-                    break;
-                }
-
-                if (maxSchedulesExceeded(maxSchedulesNumber, schedules.length)) {
-                    setWarningText(`Found ${maxSchedulesNumber} schedule(s)`);
+                if (maxTimeExceeded(maxTimeNumber, startTime) || 
+                    maxSchedulesExceeded(maxSchedulesNumber, schedules.length) || 
+                    schedules.length >=  maxSchedulesAllowed) {
                     break;
                 }
 
@@ -222,6 +224,8 @@ const ViewSchedule = () => {
         const hours = Math.floor(elapsedSeconds / 3600);
         const minutes = Math.floor((elapsedSeconds % 3600) / 60);
         const secs = elapsedSeconds % 60;
+
+        setWarningText(`Found ${schedules.length} schedules in ${elapsedSeconds} seconds`)
 
         // Pad hours, minutes, and seconds with leading zeros if necessary
         const paddedHours = String(hours).padStart(2, '0');
