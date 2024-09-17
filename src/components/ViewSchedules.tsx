@@ -4,13 +4,15 @@ import NavBar from "./NavBar";
 import { Schedule } from "@/app/interface/Schedule";
 import { Color } from "@/app/interface/Color";
 import ScheduleManager from "./ScheduleManager";
+import { FilterInterface } from "@/app/interface/Filter";
 
 
+const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
 const ViewSchedules = () => {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-    const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
     const [isLoading, setIsLoading] = useState(false);
     const [savedSchedules, setSavedSchedules] = useState<Schedule[]>();
+    const [filteredSchedules, setFilteredSchedules] = useState<Schedule[]>();
     const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]);
     const [colorDictionary, setColorDictionary] = useState<Color[]>();
     //load data
@@ -30,6 +32,7 @@ const ViewSchedules = () => {
 
             setSavedMentorNames(mentorsNames);
             setSavedSchedules(localStorageSchedules);
+            setFilteredSchedules(localStorageSchedules);
             setColorDictionary(newDictionary);
             setIsLoading(false);
         }
@@ -41,10 +44,34 @@ const ViewSchedules = () => {
     return (
         <div>
             <NavBar />
-            {savedSchedules && <p>{savedSchedules.length === 0 ? "No schedules saved in local storage" : `${savedSchedules.length} schedules found`}</p>}
+            {savedSchedules &&
+                <p>{savedSchedules.length === 0 ? "No schedules saved in local storage" : `${savedSchedules.length} schedules found (${filteredSchedules?.length} with filters)`}</p>}
 
-            {/* Make one schedule */}
-            {savedSchedules && <ScheduleManager savedSchedules={savedSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary} days={days} times={times}/>}
+            {filteredSchedules &&
+            <div>
+                <h2>Filters</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {days.map(day => <th key={day}>{day}</th>)}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {times.map(time => (
+                            <tr key={time}>
+                                <td>{time}</td>
+                                {days.map(day => (
+                                    <td key={`${day}-${time}`}>
+                                        {getDropDown(`${day}-${time}`, savedSchedules, setFilteredSchedules)}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <ScheduleManager savedSchedules={filteredSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary} days={days} times={times} />
+            </div>}
         </div>
     )
 }
@@ -56,6 +83,32 @@ function loadArrFromLocalStorage(variableName: string) {
     }
 
     return JSON.parse(str);
+}
+
+function getDropDown(id: string, schedules: Schedule[], setFilteredSchedules: any) {
+    const day = id.split("-")[0];
+    const time = id.split("-")[1];
+    
+    //get all the people who work that time on that day
+    const allNames = schedules.flatMap(schedule => schedule[day][time])
+    const names = allNames.filter((name, pos) => {
+        return allNames.indexOf(name) == pos;
+    }).sort()
+
+    let onlyName = null;
+    if(names.length == 1) {
+        onlyName = names[0];
+    }
+
+    names.splice(0, 0, "Any");
+    return <select disabled={onlyName !== null} id={id} onChange={() => {changeFilteredSchedules(schedules, setFilteredSchedules)}}>
+        {names.map(name => (
+            <option key={name} selected={name === onlyName} value={name}>
+                {name}
+            </option>
+        ))}
+    </select>
+
 }
 
 function generateColorsArray() {
@@ -73,6 +126,32 @@ function generateColorsArray() {
 
     //return the colors in a random order
     return numbers.map(num => colors[num]);
+}
+
+function changeFilteredSchedules(schedules: Schedule[], setFilteredSchedules: any) {
+    //get new filters
+    const filters: FilterInterface[] = [];
+
+    for (const selectedDay of days) {
+        for (const selectedTime of times) {
+            const selectedMentor = (document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement).value;
+            if (selectedMentor !== "Any") {
+                filters.push({ selectedMentor, selectedDay, selectedTime });
+            }
+        }
+    }
+
+    applyCustomFilters(filters, schedules, setFilteredSchedules);
+}
+
+function applyCustomFilters(filters: FilterInterface[], schedules: Schedule[], setFilteredSchedules: any) {
+    let newSchedules = [...schedules];
+
+    //for each filter, get rid of any schedules that don't follow it
+    for (const filter of filters) {
+        newSchedules = newSchedules.filter(schedule => schedule[filter.selectedDay][filter.selectedTime].includes(filter.selectedMentor))
+    }
+    setFilteredSchedules(newSchedules);
 }
 
 export default ViewSchedules;

@@ -22,6 +22,7 @@ const ScheduleManager = (props: Props) => {
     if (props.savedSchedules && props.savedSchedules.length > 0) {
         return (
             <div>
+                <p>Mentors Per Page</p>
                 <select onChange={(e) => {changeSchedulesPerPage(Number(e.target.value))}}>
                     
                     {scheduleNumberOptions.map(num => (
@@ -29,7 +30,7 @@ const ScheduleManager = (props: Props) => {
                             {num}
                         </option>
                     ))}
-                </select>
+                </select> <br />
                 <button disabled={pageIndex === 0} onClick={() => { setPageIndex(ix => ix - 1) }}>Previous Page</button>
                 <button disabled={getEndIndex() + 1 >= props.savedSchedules.length} onClick={() => { setPageIndex(ix => ix + 1) }} >Next Page</button>
                 <p>Page {pageIndex + 1} of {Math.ceil(props.savedSchedules.length / schedulesPerPage)}</p>

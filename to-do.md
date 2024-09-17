@@ -63,8 +63,9 @@
 
 ### View Saved Schedules (Kovu)
 - [x] Loads schedules from local storage
-- [ ] Show X schedules at a time, and have a next / previous button to see other schedules
+- [x] Show X schedules at a time, and have a next / previous button to see other schedules
 - [x] Make people have color codes
     - [x] Have each person have their own color from a list of colors (max 120)
 - [ ] Have a button that will download a schedule to PDF
 - [ ] Have filters (similar to generation) to show schedules that meet said filters
+- [ ] Add css to schedules so they go in reading order
