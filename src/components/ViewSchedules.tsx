@@ -11,6 +11,7 @@ const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
 const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
 const ViewSchedules = () => {
     const [isLoading, setIsLoading] = useState(false);
+    const [hideFilters, setHideFilters] = useState(false)
     const [savedSchedules, setSavedSchedules] = useState<Schedule[]>();
     const [filteredSchedules, setFilteredSchedules] = useState<Schedule[]>();
     const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]);
@@ -47,32 +48,44 @@ const ViewSchedules = () => {
             {savedSchedules &&
                 <p>{savedSchedules.length === 0 ? "No schedules saved in local storage" : `${savedSchedules.length} schedules found (${filteredSchedules?.length} with filters)`}</p>}
 
+
             {filteredSchedules &&
-            <div>
-                <h2>Filters</h2>
-                <button onClick={() => removeAllFilters(savedSchedules, setFilteredSchedules)}>Remove all filters</button>
-                <table>
-                    <thead>
-                        <tr>
-                            <th></th>
-                            {days.map(day => <th key={day}>{day}</th>)}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {times.map(time => (
-                            <tr key={time}>
-                                <td>{time}</td>
-                                {days.map(day => (
-                                    <td key={`${day}-${time}`}>
-                                        {getDropDown(`${day}-${time}`, savedSchedules, setFilteredSchedules)}
-                                    </td>
-                                ))}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                <ScheduleManager savedSchedules={filteredSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary} days={days} times={times} />
-            </div>}
+                <div>
+
+                    <h2>Filters</h2>
+                    <div>
+                        <input type="checkbox" checked={hideFilters} onChange={e => { setHideFilters(e.target.checked); }} />
+                        <label>Hide Filters</label>
+                    </div>
+
+                    {!hideFilters &&
+                        <div>
+                            <button onClick={() => removeAllFilters(savedSchedules, setFilteredSchedules)}>Remove all filters</button>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        {days.map(day => <th key={day}>{day}</th>)}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {times.map(time => (
+                                        <tr key={time}>
+                                            <td>{time}</td>
+                                            {days.map(day => (
+                                                <td key={`${day}-${time}`}>
+                                                    {getDropDown(`${day}-${time}`, savedSchedules, setFilteredSchedules)}
+                                                </td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+
+                    <ScheduleManager savedSchedules={filteredSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary} days={days} times={times} />
+                </div>}
         </div>
     )
 }
@@ -89,7 +102,7 @@ function loadArrFromLocalStorage(variableName: string) {
 function getDropDown(id: string, schedules: Schedule[], setFilteredSchedules: any) {
     const day = id.split("-")[0];
     const time = id.split("-")[1];
-    
+
     //get all the people who work that time on that day
     const allNames = schedules.flatMap(schedule => schedule[day][time])
     const names = allNames.filter((name, pos) => {
@@ -97,12 +110,12 @@ function getDropDown(id: string, schedules: Schedule[], setFilteredSchedules: an
     }).sort()
 
     let onlyName = null;
-    if(names.length == 1) {
+    if (names.length == 1) {
         onlyName = names[0];
     }
 
     names.splice(0, 0, "Any");
-    return <select disabled={onlyName !== null} id={id} onChange={() => {changeFilteredSchedules(schedules, setFilteredSchedules)}}>
+    return <select disabled={onlyName !== null} id={id} onChange={() => { changeFilteredSchedules(schedules, setFilteredSchedules) }}>
         {names.map(name => (
             <option key={name} selected={name === onlyName} value={name}>
                 {name}
@@ -160,7 +173,7 @@ function removeAllFilters(schedules: Schedule[], setFilteredSchedules: any) {
     for (const selectedDay of days) {
         for (const selectedTime of times) {
             const dropdown = document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement;
-            if(!dropdown.disabled) {
+            if (!dropdown.disabled) {
                 dropdown.value = "Any";
             }
         }
