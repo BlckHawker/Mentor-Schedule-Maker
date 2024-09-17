@@ -50,6 +50,7 @@ const ViewSchedules = () => {
             {filteredSchedules &&
             <div>
                 <h2>Filters</h2>
+                <button onClick={() => removeAllFilters(savedSchedules, setFilteredSchedules)}>Remove all filters</button>
                 <table>
                     <thead>
                         <tr>
@@ -152,6 +153,21 @@ function applyCustomFilters(filters: FilterInterface[], schedules: Schedule[], s
         newSchedules = newSchedules.filter(schedule => schedule[filter.selectedDay][filter.selectedTime].includes(filter.selectedMentor))
     }
     setFilteredSchedules(newSchedules);
+}
+
+function removeAllFilters(schedules: Schedule[], setFilteredSchedules: any) {
+    //set all dropdowns (that are not disabled) to be any
+    for (const selectedDay of days) {
+        for (const selectedTime of times) {
+            const dropdown = document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement;
+            if(!dropdown.disabled) {
+                dropdown.value = "Any";
+            }
+        }
+    }
+
+    changeFilteredSchedules(schedules, setFilteredSchedules)
+
 }
 
 export default ViewSchedules;
