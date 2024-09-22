@@ -1,15 +1,13 @@
 
-//where schedules can be made/viewed
+//where schedules can be viewed
 
-import NavBar from "@/components/NavBar";
-import ViewSchedule from "@/components/ViewSchedule";
+import ViewSchedules from "@/components/ViewSchedules";
 
 export default function SchedulePage() {
   return (
       <div>
-        <h1>Schedule Page</h1>
-        <NavBar/>
-        <ViewSchedule></ViewSchedule>
+        <h1>View Schedule Page</h1>
+        <ViewSchedules/>
       </div>
   );
 }

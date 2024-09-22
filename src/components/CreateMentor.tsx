@@ -255,11 +255,7 @@ const CreateMentor = () => {
 
     mentors = mentors.sort(sortMentors);
     setSavedMentors(mentors);
-
     setWarningText(`Added debug schedules for ${mentors.map(m => m.name).join(", ")}. (${mentors.length})`);
-
-
-
   }
 
   function mentorNameChange(e: React.FormEvent<HTMLInputElement>) {
