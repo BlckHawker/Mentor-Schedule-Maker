@@ -22,17 +22,13 @@ const CreateMentor = () => {
   const [savedMentors, setSavedMentors] = useState<{ name: string; availability: Availability }[]>();
   const [availability, setAvailability] = useState<Availability>(blankAvailability);
 
-  
+
   useEffect(() => {
     if (savedMentors !== undefined) {
       console.log('updating local storage');
       localStorage.setItem("mentors", JSON.stringify(savedMentors))
     }
   }, [savedMentors]);
-
-  useEffect(() => {
-    console.log(availability);
-  }, [availability]);
 
   useEffect(() => {
     async function fetchData() {
@@ -66,13 +62,13 @@ const CreateMentor = () => {
             </tr>
           </thead>
           <tbody>
-                    {times.map((time, ix) => (
-                        <tr key={time}>
-                            <td>{time}</td>
-                            {days.map(day => <td><Block day={day} index={ix} availability={availability} setAvailability={setAvailability}/></td>)}
-                        </tr>
-                    ))}
-                </tbody>
+            {times.map((time, ix) => (
+              <tr key={time}>
+                <td>{time}</td>
+                {days.map(day => <td><Block day={day} index={ix} availability={availability} setAvailability={setAvailability} /></td>)}
+              </tr>
+            ))}
+          </tbody>
         </table>
       </div>
       <button onClick={() => createMentor()}>Submit</button>
@@ -96,7 +92,7 @@ const CreateMentor = () => {
     }
 
     //verify there is a first / last name
-    if(mentorName.split(" ").length === 1) {
+    if (mentorName.split(" ").length === 1) {
       setWarningText("Mentor name must have first and last name");
       return;
     }
@@ -118,19 +114,29 @@ const CreateMentor = () => {
       return;
     }
 
-    //verify a mentor with that name doesn't exist
-    if (savedMentors.find(m => m.name === mentorName) !== undefined) {
-      setWarningText(`A mentor with the name "${mentorName}" already exists`);
-      return;
+    let newMentors;
+
+    const mentorExists = savedMentors.find(m => m.name === mentorName);
+
+    //if a mentor with that same name pops up, update their availability
+    if (mentorExists) {
+      newMentors = [...savedMentors].filter(m => m.name !== mentorName);
+
     }
 
-    //todo sort mentors
+    const populatedAvailability = mentorExists ?  newMentors : savedMentors;
+    newMentors = [...populatedAvailability, { name: mentorName, availability }];
 
-    const newMentors = [...savedMentors, { name: mentorName, availability }].sort(sortMentors);
+    //sort mentors by their first name
+    newMentors = newMentors.sort(sortMentors);
+
+    console.log(newMentors);
 
     //add new mentor to the list
     setSavedMentors(newMentors);
-    setWarningText(`Created new mentor: ${mentorName}`); //! this should be changed to not show as a warning
+
+    const text = mentorExists ? `Updated ${mentorName}'s availability` : `Created new mentor: ${mentorName}`
+    setWarningText(text);
   }
 
   //Debug method that populates the mentor with dummy data
