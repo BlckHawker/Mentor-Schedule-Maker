@@ -8,18 +8,17 @@
     - [x] View all mentor availability
 - Body
     - [x] Ptag with what the website is about
-    - [ ] (maybe) current mentor schedule
 ### Creating A Mentor (Sylvia)
 - [x] Navbar
-- [ ] Buttons
-    - [ ] Grey if that time slot is unavailable
-    - [ ] Green if available
-- [ ] Text bar for name
-    - [ ] "None" is a forbidden name
-    - [ ] Names have to be unique 
-    - [ ] force people to put first and last names
-- [ ] Submit button
-    - [ ] Fix bug where validation says there is an empty schedule
+- [x] Buttons
+    - [x] Grey if that time slot is unavailable
+    - [x] Green if available
+- [x] Text bar for name
+    - [x] "None" is a forbidden name
+    - [x] Names have to be unique 
+    - [x] force people to put first and last names
+- [x] Submit button
+    - [x] Fix bug where validation says there is an empty schedule
 - [x] Update debug mentors
 ### View/Edit Mentor
 - [x] Navbar

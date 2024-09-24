@@ -1,25 +1,39 @@
 "use client";
+import { Availability } from "@/app/interface/Availability";
 import { MentorInterface } from "@/app/interface/Mentor";
-import Day from "@/components/Day";
 import { useState, useEffect } from "react";
+import Block from "@/components/Block";
 const CreateMentor = () => {
-  const [warningText, setWarningText] = useState("");
-  const [mentorName, setMentorName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [savedMentors, setSavedMentors] = useState<{ name: string; availability: { Monday: boolean[]; Tuesday: boolean[]; Wednesday: boolean[]; Thursday: boolean[]; Friday: boolean[]; }; }[]>();
-  const availability = {
+
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+  const times = ["10", "11", "12", "1", "2", "3", "4", "5"]
+
+  const blankAvailability = {
     "Monday": [false, false, false, false, false, false, false, false],
     "Tuesday": [false, false, false, false, false, false, false, false],
     "Wednesday": [false, false, false, false, false, false, false, false],
     "Thursday": [false, false, false, false, false, false, false, false],
     "Friday": [false, false, false, false, false, false, false, false],
-  };
+  }
+
+  const [warningText, setWarningText] = useState("");
+  const [mentorName, setMentorName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [savedMentors, setSavedMentors] = useState<{ name: string; availability: Availability }[]>();
+  const [availability, setAvailability] = useState<Availability>(blankAvailability);
+
+  
   useEffect(() => {
     if (savedMentors !== undefined) {
       console.log('updating local storage');
       localStorage.setItem("mentors", JSON.stringify(savedMentors))
     }
   }, [savedMentors]);
+
+  useEffect(() => {
+    console.log(availability);
+  }, [availability]);
+
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
@@ -40,28 +54,53 @@ const CreateMentor = () => {
     return <div>Loading...</div>;
   }
   return (
-    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", textAlign: "center" }}>
-      <label>Mentor Name: </label>
+    <div>
+      <label>Mentor Name (first and last): </label>
       <input type="text" onChange={mentorNameChange}></input>
-      <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
-        <Day day="Monday" availability={availability["Monday"]}></Day>
-        <Day day="Tuesday" availability={availability["Tuesday"]}></Day>
-        <Day day="Wednesday" availability={availability["Wednesday"]}></Day>
-        <Day day="Thursday" availability={availability["Thursday"]}></Day>
-        <Day day="Friday" availability={availability["Friday"]}></Day>
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              {days.map(day => <th>{day}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+                    {times.map((time, ix) => (
+                        <tr key={time}>
+                            <td>{time}</td>
+                            {days.map(day => <td><Block day={day} index={ix} availability={availability} setAvailability={setAvailability}/></td>)}
+                        </tr>
+                    ))}
+                </tbody>
+        </table>
       </div>
-      <button onClick={() => buttonClick()}>Submit</button>
+      <button onClick={() => createMentor()}>Submit</button>
       <button onClick={() => populateMentors()}>Populate Mentors (Debug)</button>
+      <button onClick={() => setAvailability(blankAvailability)}>Reset Schedule</button>
       <p style={{ color: "red" }}>{warningText}</p>
     </div>
   );
 
-  function buttonClick() {
+  function createMentor() {
     //if name is blank, invalid
     if (mentorName === "") {
       setWarningText("Mentor name is required");
       return;
     }
+
+    // "None" is a forbidden name
+    if (mentorName === "None") {
+      setWarningText("\"None\" is a forbidden name");
+      return;
+    }
+
+    //verify there is a first / last name
+    if(mentorName.split(" ").length === 1) {
+      setWarningText("Mentor name must have first and last name");
+      return;
+    }
+
     //if availability is complexly blank, invalid
     if (
       Object.values(availability)
@@ -87,7 +126,7 @@ const CreateMentor = () => {
 
     //todo sort mentors
 
-    const newMentors = [ ...savedMentors, { name: mentorName, availability } ].sort(sortMentors);
+    const newMentors = [...savedMentors, { name: mentorName, availability }].sort(sortMentors);
 
     //add new mentor to the list
     setSavedMentors(newMentors);
@@ -100,7 +139,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Brooklyn Furze", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, false, false, false, false, true, true],
         "Tuesday": [false, false, false, false, false, false, true, true],
         "Wednesday": [false, false, false, false, false, false, true, true],
@@ -110,7 +149,7 @@ const CreateMentor = () => {
     });
     mentors.push({
       name: "Abigail Cawley", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, true, false, false, false, false, true],
         "Tuesday": [false, false, false, false, false, false, false, true],
         "Wednesday": [false, false, true, false, false, false, false, true],
@@ -119,10 +158,10 @@ const CreateMentor = () => {
       }
     });
 
-    
+
     mentors.push({
       name: "Ethan Ricker", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, true, true, true, true, true, true],
         "Tuesday": [false, false, false, false, false, true, false, false],
         "Wednesday": [false, false, true, true, true, false, false, false],
@@ -134,7 +173,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Jonah Edick", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [true, false, true, false, false, false, false, false],
         "Tuesday": [false, false, false, false, false, true, true, false],
         "Wednesday": [true, false, true, false, true, true, true, true],
@@ -145,7 +184,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Andrew Lee", availability: {
-        //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, false, false, false, false, false, false],
         "Tuesday": [false, false, true, false, false, false, true, true],
         "Wednesday": [false, false, false, false, false, false, false, false],
@@ -156,7 +195,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Aneesh Bukya", availability: {
-        //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, false, false, false, false, true, true],
         "Tuesday": [false, false, false, false, false, false, false, false],
         "Wednesday": [false, false, false, false, false, false, true, true],
@@ -167,7 +206,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Anthony", availability: {
-                    //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, false, true, false, false, false, false],
         "Tuesday": [false, false, false, false, true, false, false, false],
         "Wednesday": [false, false, false, true, false, false, false, false],
@@ -178,7 +217,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Cooper Mistishin", availability: {
-        //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [true, true, false, false, true, true, true, true],
         "Tuesday": [true, true, false, false, false, false, false, false],
         "Wednesday": [true, true, false, false, true, true, true, true],
@@ -189,7 +228,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Evan Kinsey", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [true, false, false, false, true, true, false, false],
         "Tuesday": [false, false, false, false, false, false, false, false],
         "Wednesday": [true, false, false, false, true, true, false, false],
@@ -200,18 +239,18 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Hridiza", availability: {
-                  //10   11    12      1      2      3      4     5
-      "Monday": [false, false, false, true, false, false, false, false],
-      "Tuesday": [false, false, false, false, false, false, false, false],
-      "Wednesday": [false, false, false, false, false, false, false, false],
-      "Thursday": [false, false, false, false, false, false, false, false],
-      "Friday": [false, false, false, true, false, false, false, false],
+        //4   11    12      1      2      3      4     5
+        "Monday": [false, false, false, true, false, false, false, false],
+        "Tuesday": [false, false, false, false, false, false, false, false],
+        "Wednesday": [false, false, false, false, false, false, false, false],
+        "Thursday": [false, false, false, false, false, false, false, false],
+        "Friday": [false, false, false, true, false, false, false, false],
       }
     });
 
     mentors.push({
       name: "Max", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [true, true, true, true, false, false, false, false],
         "Tuesday": [true, false, false, false, false, false, false, false],
         "Wednesday": [true, true, true, true, false, false, false, false],
@@ -222,7 +261,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Ryan Yocum", availability: {
-                    //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [true, false, false, true, true, false, false, false],
         "Tuesday": [false, false, false, false, true, true, false, false],
         "Wednesday": [true, false, false, true, true, false, false, false],
@@ -233,7 +272,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Sylvia", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, false, false, false, false, true, true],
         "Tuesday": [false, false, true, true, true, true, false, false],
         "Wednesday": [false, false, false, false, false, false, true, true],
@@ -244,7 +283,7 @@ const CreateMentor = () => {
 
     mentors.push({
       name: "Tristen", availability: {
-                  //10   11    12      1      2      3      4     5
+        //4   11    12      1      2      3      4     5
         "Monday": [false, false, true, true, true, false, false, false],
         "Tuesday": [true, true, false, false, false, false, false, true],
         "Wednesday": [false, false, true, true, true, false, false, false],
@@ -259,7 +298,7 @@ const CreateMentor = () => {
   }
 
   function mentorNameChange(e: React.FormEvent<HTMLInputElement>) {
-    setMentorName(e.currentTarget.value);
+    setMentorName(e.currentTarget.value.trim());
   }
 
   function sortMentors(m1: MentorInterface, m2: MentorInterface) {

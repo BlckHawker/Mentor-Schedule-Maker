@@ -1,28 +1,32 @@
 // Used to make/edit a mentor's availability
-import { useEffect, useState } from "react";
+import { Availability } from "@/app/interface/Availability";
+import { use, useEffect, useState } from "react";
 
 interface Props {
-    time: string;
-    availability: boolean[];
+    day: string;
     index: number;
+    availability: Availability;
+    setAvailability: Function; //refactor this to be the specific type
 }
 
 const Block = (props: Props) => {
-  const [isActive, setIsActive] = useState(false);
-  useEffect(() => {
-    console.log("is active use effect: " + isActive)
-    props.availability[props.index] = isActive;
-  }, [isActive]);
-  return (
-    <div style={{display: "flex", gap: "10px", alignItems: "center" } }>
-      <p>{props.time}</p>
-      <button style={{backgroundColor: `${isActive ? "green" : "gray"}`, width: "75px", height: "35px" } } onClick={() => buttonClick()}></button>
-    </div>
-  );
+  const [isActive, setIsActive] = useState(props.availability[props.day][props.index]);
 
-  function buttonClick() {
-    setIsActive(active => !active);
-  }
+  useEffect(() => {
+    setIsActive(props.availability[props.day][props.index])
+  }, [props.availability]);
+  useEffect(() => {
+    //change the specific availability block 
+    const updatedAvailability = { ...props.availability };
+    updatedAvailability[props.day][props.index] = isActive;
+
+    props.setAvailability(updatedAvailability);
+
+  }, [isActive]);
+
+  return (
+      <button style={{backgroundColor: `${isActive ? "green" : "gray"}`, width: "75px", height: "35px" } } onClick={() => setIsActive((active: boolean) => !active)}></button>
+  );
 };
 
 export default Block;

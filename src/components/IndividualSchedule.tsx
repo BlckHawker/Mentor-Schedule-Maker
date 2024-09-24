@@ -36,9 +36,6 @@ const IndividualSchedule = (props: Props) => {
                             ))}
                         </tr>
                     ))}
-
-
-
                 </tbody>
             </table>
         </div>
