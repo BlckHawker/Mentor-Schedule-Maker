@@ -14,7 +14,6 @@ const IndividualSchedule = (props: Props) => {
         return <p></p>
     }
 
-    //assumes there is only one person on shift
     return (
         <div>
             <table>

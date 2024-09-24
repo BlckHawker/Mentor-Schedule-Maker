@@ -30,7 +30,7 @@ const ViewClient = () => {
         <div>
             <h2>Mentors</h2>
             <p>Saved mentors: {savedMentors.length}</p>
-            {savedMentors.map(m => <Mentor name={m.name} availability={m.availability}></Mentor>)}
+            {savedMentors.map(m => <Mentor mentor={m} savedMentors={savedMentors} setSavedMentors={setSavedMentors}></Mentor>)}
         </div>
     );
 }
