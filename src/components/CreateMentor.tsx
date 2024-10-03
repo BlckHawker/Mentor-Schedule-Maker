@@ -65,7 +65,7 @@ const CreateMentor = () => {
             {times.map((time, ix) => (
               <tr key={time}>
                 <td>{time}</td>
-                {days.map(day => <td><Block day={day} index={ix} availability={availability} setAvailability={setAvailability} /></td>)}
+                {days.map(day => <td><Block day={day as keyof Availability} index={ix} availability={availability} setAvailability={setAvailability} /></td>)}
               </tr>
             ))}
           </tbody>
@@ -125,12 +125,18 @@ const CreateMentor = () => {
     }
 
     const populatedAvailability = mentorExists ?  newMentors : savedMentors;
-    newMentors = [...populatedAvailability, { name: mentorName, availability }];
+
+    //This should never be false happen but is just a safety to get rid of the typescript error
+    if (populatedAvailability) {
+      newMentors = [...populatedAvailability, { name: mentorName, availability }];
+    } 
+    
+    else {
+        newMentors = [{ name: mentorName, availability }];
+    }
 
     //sort mentors by their first name
     newMentors = newMentors.sort(sortMentors);
-
-    console.log(newMentors);
 
     //add new mentor to the list
     setSavedMentors(newMentors);
