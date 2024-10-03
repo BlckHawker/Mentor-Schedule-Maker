@@ -2,8 +2,9 @@
 import { Availability } from "@/app/interface/Availability";
 import { use, useEffect, useState } from "react";
 
+type Day = keyof Availability;
 interface Props {
-    day: string;
+    day: Day;
     index: number;
     availability: Availability;
     setAvailability: Function; //refactor this to be the specific type
