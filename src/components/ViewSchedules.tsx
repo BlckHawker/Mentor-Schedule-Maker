@@ -5,6 +5,7 @@ import { Schedule } from "@/app/interface/Schedule";
 import { Color } from "@/app/interface/Color";
 import ScheduleManager from "./ScheduleManager";
 import { FilterInterface } from "@/app/interface/Filter";
+import { Day } from "@/app/interface/Day";
 
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -60,7 +61,7 @@ const ViewSchedules = () => {
 
                     {!hideFilters &&
                         <div>
-                            <button onClick={() => removeAllFilters(savedSchedules, setFilteredSchedules)}>Remove all filters</button>
+                            <button onClick={() => removeAllFilters(savedSchedules as Schedule[], setFilteredSchedules)}>Remove all filters</button>
                             <table>
                                 <thead>
                                     <tr>
@@ -74,7 +75,7 @@ const ViewSchedules = () => {
                                             <td>{time}</td>
                                             {days.map(day => (
                                                 <td key={`${day}-${time}`}>
-                                                    {getDropDown(`${day}-${time}`, savedSchedules, setFilteredSchedules)}
+                                                    {getDropDown(`${day}-${time}`, savedSchedules as Schedule[], setFilteredSchedules)}
                                                 </td>
                                             ))}
                                         </tr>
@@ -84,7 +85,7 @@ const ViewSchedules = () => {
                         </div>
                     }
 
-                    <ScheduleManager savedSchedules={filteredSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary} days={days} times={times} />
+                    <ScheduleManager savedSchedules={filteredSchedules} mentorNames={savedMentorNames} colorDictionary={colorDictionary as Color[]} days={days as (keyof Schedule)[]} times={times as (keyof Day)[]} />
                 </div>}
         </div>
     )
@@ -104,7 +105,7 @@ function getDropDown(id: string, schedules: Schedule[], setFilteredSchedules: an
     const time = id.split("-")[1];
 
     //get all the people who work that time on that day
-    const allNames = schedules.flatMap(schedule => schedule[day][time])
+    const allNames = schedules.flatMap(schedule => schedule[day as (keyof Schedule)][time as (keyof Day)])
     const names = allNames.filter((name, pos) => {
         return allNames.indexOf(name) == pos;
     }).sort()
@@ -163,7 +164,7 @@ function applyCustomFilters(filters: FilterInterface[], schedules: Schedule[], s
 
     //for each filter, get rid of any schedules that don't follow it
     for (const filter of filters) {
-        newSchedules = newSchedules.filter(schedule => schedule[filter.selectedDay][filter.selectedTime].includes(filter.selectedMentor))
+        newSchedules = newSchedules.filter(schedule => schedule[filter.selectedDay as keyof Schedule][filter.selectedTime as keyof Day].includes(filter.selectedMentor))
     }
     setFilteredSchedules(newSchedules);
 }

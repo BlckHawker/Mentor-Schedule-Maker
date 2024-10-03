@@ -41,7 +41,7 @@ const IndividualSchedule = (props: Props) => {
     );
 }
 
-function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: string, time: string) {
+function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Schedule, time: keyof Day) {
     //get the mentors who work that specific block
     const mentors = schedule[day][time];
 

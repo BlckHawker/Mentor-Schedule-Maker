@@ -8,7 +8,7 @@ import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const GenerateSchedule = () => {
     const pauseTime = 1;
-    const maxSchedulesAllowed = 4294967295; //physically can't add anymore to an array 
+    const maxSchedulesAllowed = 1000000; //physically can't add anymore to an array 
     const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
     const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
@@ -110,8 +110,6 @@ const GenerateSchedule = () => {
                 <p>Generating Schedules...{formatTime(elapsedTime)}</p>
                 <p>Found {numberWithCommas(schedulesFound)} schedules</p>
             </div>}
-
-            {possibleSchedules?.filter((_, ix) => ix === 0).map(schedule => <IndividualSchedule schedule={schedule} days={days} times={times} />)}
             <p>{warningText}</p>
 
         </div>
@@ -182,7 +180,7 @@ const GenerateSchedule = () => {
         console.log(`Estimated number of results is ${expectedResultNumber}`);
         const schedules = [] as any[];
 
-        async function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): any {
+        async function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): Promise<any> {
 
             //force to wait on Monday, Wednesday and Friday
             if (dayIndex % 2 == 0) {
