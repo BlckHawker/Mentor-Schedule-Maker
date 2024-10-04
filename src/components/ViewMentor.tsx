@@ -19,6 +19,15 @@ const ViewClient = () => {
         }
         fetchData();
     }, []);
+
+    //update mentors when one is deleted
+    useEffect(() => {
+        if (savedMentors !== undefined) {
+          console.log('updating local storage');
+          localStorage.setItem("mentors", JSON.stringify(savedMentors))
+        }
+      }, [savedMentors]);
+
     if (isLoading) {
         return <div>Loading...</div>;
     }
