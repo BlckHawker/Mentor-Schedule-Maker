@@ -106,7 +106,7 @@ const GenerateSchedule = () => {
                 </tbody>
             </table>
             <button disabled={generatingSchedules} onClick={() => generateSchedules()}>Generate schedules</button>
-            <button onClick={() => getAllDayPermutations("Monday")}>Get Permutations</button>
+            <button onClick={() => getAllSchedules()}>Get Permutations</button>
             {generatingSchedules && <div>
                 <p>Generating Schedules...{formatTime(elapsedTime)}</p>
                 <p>Found {numberWithCommas(schedulesFound)} schedules</p>
@@ -421,134 +421,86 @@ const GenerateSchedule = () => {
         return maxSchedulesBoolean && scheduleCount >= maxScheduleNumber;
     }
 
-    function getAllDayPermutations(day: string) {
-        //todo replace the "max shift" parameter
-        const maxShift = 4;
-        const maxPossibilities = 1000; //max # of day possibilities generated 
+    function getAllSchedules() {
 
-        //todo get rid of any day possibilities where the max shifts is exceeded
-        const allDayPossibilities: Day[] = [];
-        const day10 = getTotalCombination(day, 0);
-        const day11 = getTotalCombination(day, 1);
-        const day12 = getTotalCombination(day, 2);
-        const day1 = getTotalCombination(day, 3);
-        const day2 = getTotalCombination(day, 4);
-        const day3 = getTotalCombination(day, 5);
-        const day4 = getTotalCombination(day, 6);
-        const day5 = getTotalCombination(day, 7);
+        const filters: FilterInterface[] = [];
 
-        console.log(day10);
-        console.log(day11);
-        console.log(day12);
-        console.log(day1);
-        console.log(day2);
-        console.log(day3);
-        console.log(day4);
-        console.log(day5);
-
-        console.log("Estimated combinations: " + day10.length * day11.length * day12.length * day1.length * day2.length * day3.length * day4.length * day5.length)
-        for(const ten of day10) {
-            let possibleDay: any = {"10": ten};
-            let names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-            if(exceedHourLimit(names, maxShift)) {
-                    continue;
-            }
-
-            for(const eleven of day11) {
-                possibleDay["11"] = eleven;
-                names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                if(exceedHourLimit(names, maxShift)) {
-                    continue;
-                }
-                if(allDayPossibilities.length >= maxPossibilities) {
-                    break;
-                }
-                for(const twelve of day12) {
-                    possibleDay["12"] = twelve;
-                    names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                    if(exceedHourLimit(names, maxShift)) {
-                        continue;
-                    }
-                    if(allDayPossibilities.length >= maxPossibilities) {
-                        break;
-                    }
-                    for(const one of day1) {
-                        possibleDay["1"] = one;
-                        names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                        if(exceedHourLimit(names, maxShift)) {
-                            continue;
-                        }
-                        if(allDayPossibilities.length >= maxPossibilities) {
-                            break;
-                        }
-                        for(const two of day2) {
-                            possibleDay["2"] = two;
-                            names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                            if(exceedHourLimit(names, maxShift)) {
-                                continue;
-                            }
-                            if(allDayPossibilities.length >= maxPossibilities) {
-                                break;
-                            }
-                            for(const three of day3) {
-                                possibleDay["3"] = three;
-                                names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                                if(exceedHourLimit(names, maxShift)) {
-                                    continue;
-                                }
-                                if(allDayPossibilities.length >= maxPossibilities) {
-                                    break;
-                                }
-                                for(const four of day4) {
-                                    possibleDay["4"] = four;
-                                    names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                                    if(exceedHourLimit(names, maxShift)) {
-                                        continue;
-                                    }
-                                    if(allDayPossibilities.length >= maxPossibilities) {
-                                        break;
-                                    }
-                                    for(const five of day5) {
-                                        possibleDay["5"] = five;
-                                        names = Object.values(possibleDay).flatMap(arr => arr) as string[];
-                                        if(exceedHourLimit(names, maxShift)) {
-                                            continue;
-                                        }
-                                        if(allDayPossibilities.length >= maxPossibilities) {
-                                            break;
-                                        }
-
-                                        allDayPossibilities.push(possibleDay);
-                                    }
-                                }
-                            }
-                        }
-                    }
+        for (const selectedDay of days) {
+            for (const selectedTime of times) {
+                const selectedMentor = (document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement).value;
+                if (selectedMentor !== "Any") {
+                    filters.push({ selectedMentor, selectedDay, selectedTime });
                 }
             }
         }
+
+        const allDayPossibilities: { [key: string]: Day[] } = {};
+
+        for(let i = 0; i < days.length; i++) {
+            const day = days[i];
+            const filtersByDay = filters.filter(f => f.selectedDay === day);
+            allDayPossibilities[day] = getAllDayPermutationsRecursion(day, filtersByDay);
+        }
+    }
+
+    function getAllDayPermutationsRecursion(day: string, filters: FilterInterface[]): Day[] {
+        //todo replace the "max shift" parameter
+        const maxShift = 4;
+        //todo make this a parameter at the top of the file
+        const maxPossibilities = 1000; //max # of day possibilities generated 
+        const allDayPossibilities: Day[] = [];
+
+        const shiftPossibilities: {[key: string]: string[][]} = {} ;
+
+        for(let i = 0; i < times.length; i++) {
+            //todo: replace [] with the filters for that specific day/time
+            const filterByTime = filters.filter(f => f.selectedTime === times[i]);
+            shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime);
+        }
+        function m(timeIndex: number, currentDaySchedule: any) {
+            if (timeIndex >= times.length) {
+                const names = Object.values(currentDaySchedule).flatMap(arr => arr) as string[];
+                if (!exceedHourLimit(names, maxShift)) {
+                    allDayPossibilities.push(currentDaySchedule);
+                }
+                return currentDaySchedule;
+            }
+
+            const time = times[timeIndex];
+            for (const shift of shiftPossibilities[time]) {
+                if(allDayPossibilities.length >= maxPossibilities) {
+                    break;
+                }
+                const newSchedule = { ...currentDaySchedule, [time]: shift };
+                m(timeIndex + 1, newSchedule);
+            }
+        }
+
+        m(0, {});
+        console.log(allDayPossibilities);
+
         return allDayPossibilities;
     }
 
-
-
-    function getTotalCombination(day: string, index: number) {
+    function getTotalCombination(day: string, index: number, filters: FilterInterface[]) {
         //todo replace this with parameters from the user
         const max = 3;
         const min = 1;
 
         //get a list of the mentors
         const mentors = getAllTimeShifts(day, index);
-        console.log(mentors);
         const results: string[][] = [];
+
+        const filteredNames = filters.map(filter => filter.selectedMentor);
 
         //get combinations from lengths [max, min] inclusively
         for(let i = max; i >= min; i--) {
             const r = getCombinations(mentors, i);
 
-            //todo: replace this for loop with a method that will get all the arrays of r. With the exception of if r is empty
             for(const arr of r) {
-                results.push(arr);
+                if(filteredNames.every(requiredName => arr.includes(requiredName))) {
+                    results.push(arr);
+                }
             }
         }
 
