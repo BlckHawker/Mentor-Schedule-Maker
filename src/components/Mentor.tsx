@@ -7,6 +7,9 @@ interface Props {
     savedMentors: any
     setSavedMentors: any
 }
+
+//todo: make Row's a loop just so it's not repetitive
+
 const Mentor = (props: Props) => {
     if(Object.values(props).some(v => v === undefined)) {
         return <p>There was an error. Contact the developers</p>;

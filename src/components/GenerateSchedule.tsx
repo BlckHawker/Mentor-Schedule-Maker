@@ -105,7 +105,7 @@ const GenerateSchedule = () => {
                     ))}
                 </tbody>
             </table>
-            <button onClick={() => generateSchedules()}>Generate schedules</button>
+            <button disabled={generatingSchedules} onClick={() => generateSchedules()}>Generate schedules</button>
             {generatingSchedules && <div>
                 <p>Generating Schedules...{formatTime(elapsedTime)}</p>
                 <p>Found {numberWithCommas(schedulesFound)} schedules</p>
@@ -231,7 +231,6 @@ const GenerateSchedule = () => {
         const elapsedSeconds = getElapsedSeconds(startTime);
 
         setWarningText(`Found ${numberWithCommas(schedules.length)} schedule(s) in ${formatTime(elapsedSeconds)}`)
-        console.log("result", schedules);
         setPossibleSchedules(schedules);
 
         //play sound to notify user that generation is done
