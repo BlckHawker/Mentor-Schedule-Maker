@@ -425,7 +425,7 @@ const GenerateSchedule = () => {
   function getAllSchedules() {
     //todo get the parameter from the user
     const maxShifts = 4;
-    const maxSchedules = 1;
+    const maxSchedules = 1000000;
     const filters: FilterInterface[] = [];
 
     for (const selectedDay of days) {
@@ -446,70 +446,67 @@ const GenerateSchedule = () => {
       console.log(allDayPossibilities[day])
     }
 
+    return;
+
     const schedules: Schedule[] = [];
 
-    for (const monday of allDayPossibilities["Monday"]) {
-      const schedule = { Monday: monday } as Schedule;
-      const mondayNames = Object.values(monday).flatMap((arr) => arr);
-      if (schedules.length >= maxSchedules) {
-        break;
-      }
-      if (exceedHourLimit(mondayNames, maxShifts)) {
-        continue;
-      }
-      for (const tuesday of allDayPossibilities["Tuesday"]) {
-        schedule["Tuesday"] = tuesday;
-        const tuesdayNames = Object.values(tuesday).flatMap((arr) => arr);
-        if (schedules.length >= maxSchedules) {
-          break;
+    function generateSchedulesRecursion(dayIndex: number, currentSchedule: Schedule, scheduleNameList: string[]) {
+        //force to wait on Monday, Wednesday and Friday
+        // if (dayIndex % 2 == 0) {
+        //   await new Promise((r) => setTimeout(r, pauseTime));
+        // }
+  
+        //base case: Friday has been processed
+        if (dayIndex >= days.length) {
+            console.log("base case met");
+          if (forceAllMentorsBoolean) {
+            const peopleCount = savedMentorNames.map((name) => itemCounter(scheduleNameList, name));
+            if (peopleCount.every((num) => num > 0)) {
+              schedules.push(currentSchedule);
+            }
+          } else {
+              schedules.push(currentSchedule);
+          }
+  
+          setSchedulesFound(schedules.length);
+          return currentSchedule;
         }
-        if (exceedHourLimit(mondayNames.concat(tuesdayNames), maxShifts)) {
-          continue;
-        }
-        for (const wednesday of allDayPossibilities["Wednesday"]) {
-          schedule["Wednesday"] = wednesday;
-          const wednesdayNames = Object.values(wednesday).flatMap((arr) => arr);
-          if (schedules.length >= maxSchedules) {
+  
+        const day = days[dayIndex];
+        for (const shift of allDayPossibilities[day]) {
+          if (maxSchedulesExceeded(maxSchedules, schedules.length) || schedules.length >= maxSchedulesAllowed) {
             break;
           }
-          if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames), maxShifts)) {
-            continue;
-          }
-          for (const thursday of allDayPossibilities["Thursday"]) {
-            schedule["Thursday"] = thursday;
-            const thursdayNames = Object.values(thursday).flatMap((arr) => arr);
-            if (schedules.length >= maxSchedules) {
-              break;
-            }
-            if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames), maxShifts)) {
-              continue;
-            }
-            for (const friday of allDayPossibilities["Friday"]) {
-              schedule["Friday"] = friday;
-              const fridayNames = Object.values(friday).flatMap((arr) => arr);
-              if (schedules.length >= maxSchedules) {
-                break;
-              }
-              if (exceedHourLimit(mondayNames.concat(tuesdayNames).concat(wednesdayNames).concat(thursdayNames).concat(fridayNames), maxShifts)) {
+  
+          const shiftNames = Object.values(shift).flatMap((arr) => arr) as string[];
+          const newScheduleNameList = scheduleNameList.concat(shiftNames);
+  
+          const newSchedule = { ...currentSchedule, [day]: shift };
+          //verify that nobody has worked more than the max amount of hours
+          if (exceedHourLimit(newScheduleNameList, maxShifts)) {
                 continue;
-              }
-              console.log("schedule added");
-              schedules.push(schedule);
-            }
           }
+  
+          generateSchedulesRecursion(dayIndex + 1, newSchedule, newScheduleNameList);
         }
       }
-    }
+
+      generateSchedulesRecursion(0, {} as Schedule, [])
 
     console.log(schedules);
   }
 
   function getAllDayPermutationsRecursion(day: string, filters: FilterInterface[]): Day[] {
+    //todo: get a better name for this interface
+    interface DayNum {
+        day: Day,
+        count: number;
+    }
     //todo replace the "max shift" parameter
     const maxShift = 4;
     //todo make this a parameter at the top of the file
     const maxPossibilities = 1000000; //max # of day possibilities generated
-    const allDayPossibilities: Day[] = [];
+    const allDayPossibilities: DayNum[] = [];
 
     const shiftPossibilities: { [key: string]: string[][] } = {};
 
@@ -518,11 +515,13 @@ const GenerateSchedule = () => {
       const filterByTime = filters.filter((f) => f.selectedTime === times[i]);
       shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime);
     }
-    function m(timeIndex: number, currentDaySchedule: any) {
+
+    //todo give this method a better name
+    function m(timeIndex: number, currentDaySchedule: Day) {
       if (timeIndex >= times.length) {
         const names = Object.values(currentDaySchedule).flatMap((arr) => arr) as string[];
         if (!exceedHourLimit(names, maxShift)) {
-          allDayPossibilities.push(currentDaySchedule);
+          allDayPossibilities.push({day: currentDaySchedule, count: getMaxNameCount(currentDaySchedule)});
         }
         return currentDaySchedule;
       }
@@ -537,9 +536,7 @@ const GenerateSchedule = () => {
       }
     }
 
-    m(0, {});
-
-    //for each possibility, make an dictionary where the key is the mentor name and the value is the count of said mentor
+    m(0, {} as Day);
 
     function onlyUnique(value: string, index: number, array: string[]) {
       return array.indexOf(value) === index;
@@ -552,26 +549,8 @@ const GenerateSchedule = () => {
       return Math.max(...nameCount);
     }
 
-    // const maxCountArr = allDayPossibilities.map(d => getMaxNameCount(d));
-    // let sortedArrIndices = [] as number[];
-    // let count = 0;
-    // do {
-    //     const validIndices = maxCountArr.map((num, ix) => num === count ? ix : undefined).filter(ix => ix);
-    //     if(validIndices.length != 0) {
-    //         sortedArrIndices = sortedArrIndices.concat(validIndices as number[]);
-    //     }
-    //     count++;
-    // } while(sortedArrIndices.length != allDayPossibilities.length)
-    // console.log(sortedArrIndices);
-
-    //todo possibly make this generation faster by holding the value that 
-    //todo "getMaxNameCount" returns in an array for each element in "allDayPossibilities"
-    function compareDayPossibility(a: Day, b: Day) {
-
-        return getMaxNameCount(a) - getMaxNameCount(b);
-    }
-    
-    return allDayPossibilities.sort(compareDayPossibility)
+    //sort the possibilities by the least peak "mentor count"
+    return allDayPossibilities.sort((a, b) => a.count - b.count).map(possibility => possibility.day);
   }
 
   function getTotalCombination(day: string, index: number, filters: FilterInterface[]) {
