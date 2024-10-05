@@ -425,8 +425,57 @@ const GenerateSchedule = () => {
   function getAllSchedules() {
     //todo get the parameter from the user
     const maxShifts = 4;
-    const maxSchedules = 1000000;
-    const filters: FilterInterface[] = [];
+    const maxSchedules = 1;
+    // const filters: FilterInterface[] = [];
+
+    //dummy filters just so I don't have set the drop downs every time
+    const filters: FilterInterface[] = [
+        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "10"},
+        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "11"},
+        {selectedMentor: "Abigail Cawley", selectedDay: "Monday", selectedTime: "12"},
+        {selectedMentor: "Anthony", selectedDay: "Monday", selectedTime: "1"},
+        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "2"},
+        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "3"},
+        {selectedMentor: "Aneesh Bukya", selectedDay: "Monday", selectedTime: "4"},
+        {selectedMentor: "Abigail Cawley", selectedDay: "Monday", selectedTime: "5"},
+
+        {selectedMentor: "Max", selectedDay: "Tuesday", selectedTime: "10"},
+        {selectedMentor: "Tristen", selectedDay: "Tuesday", selectedTime: "11"},
+        {selectedMentor: "Andrew Lee", selectedDay: "Tuesday", selectedTime: "12"},
+        {selectedMentor: "Sylvia", selectedDay: "Tuesday", selectedTime: "1"},
+        {selectedMentor: "Anthony", selectedDay: "Tuesday", selectedTime: "2"},
+        {selectedMentor: "Ethan Ricker", selectedDay: "Tuesday", selectedTime: "3"},
+        {selectedMentor: "Andrew Lee", selectedDay: "Tuesday", selectedTime: "4"},
+        {selectedMentor: "Abigail Cawley", selectedDay: "Tuesday", selectedTime: "5"},
+
+        {selectedMentor: "Evan Kinsey", selectedDay: "Wednesday", selectedTime: "10"},
+        {selectedMentor: "Max", selectedDay: "Wednesday", selectedTime: "11"},
+        {selectedMentor: "Abigail Cawley", selectedDay: "Wednesday", selectedTime: "12"},
+        {selectedMentor: "Anthony", selectedDay: "Wednesday", selectedTime: "1"},
+        {selectedMentor: "Ethan Ricker", selectedDay: "Wednesday", selectedTime: "2"},
+        {selectedMentor: "Evan Kinsey", selectedDay: "Wednesday", selectedTime: "3"},
+        {selectedMentor: "Aneesh Bukya", selectedDay: "Wednesday", selectedTime: "4"},
+        {selectedMentor: "Aneesh Bukya", selectedDay: "Wednesday", selectedTime: "5"},
+
+        {selectedMentor: "Max", selectedDay: "Thursday", selectedTime: "10"},
+        {selectedMentor: "Tristen", selectedDay: "Thursday", selectedTime: "11"},
+        {selectedMentor: "Sylvia", selectedDay: "Thursday", selectedTime: "12"},
+        {selectedMentor: "Andrew Lee", selectedDay: "Thursday", selectedTime: "1"},
+        {selectedMentor: "Anthony", selectedDay: "Thursday", selectedTime: "2"},
+        {selectedMentor: "Brooklyn Furze", selectedDay: "Thursday", selectedTime: "3"},
+        {selectedMentor: "Brooklyn Furze", selectedDay: "Thursday", selectedTime: "4"},
+        {selectedMentor: "Brooklyn Furze", selectedDay: "Thursday", selectedTime: "5"},
+
+        {selectedMentor: "Evan Kinsey", selectedDay: "Friday", selectedTime: "10"},
+        {selectedMentor: "Max", selectedDay: "Friday", selectedTime: "11"},
+        {selectedMentor: "Ethan Ricker", selectedDay: "Friday", selectedTime: "12"},
+        {selectedMentor: "Hridiza", selectedDay: "Friday", selectedTime: "1"},
+        {selectedMentor: "Ryan Yocum", selectedDay: "Friday", selectedTime: "2"},
+        {selectedMentor: "Ethan Ricker", selectedDay: "Friday", selectedTime: "3"},
+        {selectedMentor: "Brooklyn Furze", selectedDay: "Friday", selectedTime: "4"},
+        {selectedMentor: "Jonah Edick", selectedDay: "Friday", selectedTime: "5"},
+    ];
+
 
     for (const selectedDay of days) {
       for (const selectedTime of times) {
@@ -446,9 +495,9 @@ const GenerateSchedule = () => {
       console.log(allDayPossibilities[day])
     }
 
-    return;
-
     const schedules: Schedule[] = [];
+
+    //todo if there are filters and any of the day possibilities are empty, say zero results are found
 
     function generateSchedulesRecursion(dayIndex: number, currentSchedule: Schedule, scheduleNameList: string[]) {
         //force to wait on Monday, Wednesday and Friday
