@@ -200,8 +200,8 @@ const GenerateSchedule = () => {
       await new Promise((r) => setTimeout(r, pauseTime));
       allDayPossibilities[day] = getAllDayPossibilities(day, filters, maxShiftsNumber, minMentorsNumber, maxMentorsNumber);
 
+      console.log(allDayPossibilities[day]);
     }
-    console.log(allDayPossibilities["Monday"]);
 
     //the length of all possibilities multiplied together
     const expectedResultNumber = Object.values(allDayPossibilities).reduce((preVal, possibilities) => preVal * possibilities.length, 1);
@@ -407,6 +407,7 @@ const GenerateSchedule = () => {
     interface DayNum {
       day: Day;
       count: number;
+      nameList: string[]
     }
     //todo make this a parameter at the top of the file
     const maxPossibilities = 1000000; //max # of day possibilities generated
@@ -424,7 +425,11 @@ const GenerateSchedule = () => {
       if (timeIndex >= times.length) {
         const names = Object.values(currentDaySchedule).flatMap((arr) => arr) as string[];
         if (!exceedHourLimit(names, maxShift)) {
-          allDayPossibilities.push({ day: currentDaySchedule, count: getMaxNameCount(currentDaySchedule) });
+          const dayObj = {} as DayNum;
+          dayObj.day = currentDaySchedule;
+          dayObj.nameList = names;
+          dayObj.count = getMaxNameCount(dayObj);
+          allDayPossibilities.push(dayObj);
         }
         return currentDaySchedule;
       }
@@ -445,28 +450,27 @@ const GenerateSchedule = () => {
       return array.indexOf(value) === index;
     }
 
-    function getMaxNameCount(day: Day) {
+    function getMaxNameCount(day: DayNum) {
       //don't include "None" in the max count
-      const nameList = Object.values(day).flatMap((arr) => arr).filter(name => name !== "None");
+      const nameList = day.nameList.filter(name => name !== "None");
       const distinctNames = nameList.filter(onlyUnique);
       const nameCount = distinctNames.map((name) => itemCounter(nameList, name));
       return Math.max(...nameCount);
     }
 
     //sort the possibilities by the least peak "mentor count"
-    const sortedPossibilities = allDayPossibilities.sort((a, b) => a.count - b.count).map((possibility) => possibility.day);
+    const sortedPossibilities = allDayPossibilities.sort((a, b) => a.count - b.count);
     const noneArr = [];
     const notNoneArr = [];
 
     //prioritize day possibilities where "None" is not present
     for(const possibility of sortedPossibilities) {
-      //todo: "Object.values(possibility).flatMap(arr => arr)" is being used a lot, see if you can old the value within the object
-      if(Object.values(possibility).flatMap(arr => arr).includes("None")) {
-        noneArr.push(possibility);
+      if(possibility.nameList.includes("None")) {
+        noneArr.push(possibility.day);
       }
 
       else {
-        notNoneArr.push(possibility);
+        notNoneArr.push(possibility.day);
       }
     }
 
