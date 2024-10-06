@@ -7,31 +7,31 @@ import IndividualSchedule from "./IndividualSchedule";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const GenerateSchedule = () => {
-  const pauseTime = 1;
+  const pauseTime = 1; //the amount of milliseconds that will pass when "setTimeout" is called. Is there just to allow generating info to update in real time
   const maxSchedulesAllowed = 1000000; //max # of generated schedules
   const maxDayPossibilities = 1000000; //max # of day possibilities generated
 
-  const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
-  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
-  const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
+  const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3"; //the sound that will play when generation finishes
+  const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]; //the days a mentor is allowed to work
+  const times = ["10", "11", "12", "1", "2", "3", "4", "5"]; //the times a mentor is allowed to work
   const [schedulesFound, setSchedulesFound] = useState(0);
-  const [startingTime, setStartingTime] = useState(0);
-  const [elapsedTime, setElapsedTime] = useState(0);
-  const [generatingSchedules, setGeneratingSchedules] = useState(false);
-  const [forceAllMentorsBoolean, setForceAllMentorsBoolean] = useState(true);
-  const [allowNoneSchedules, setAllowNoneSchedules] = useState(false);
-  const [maxTimeBoolean, setMaxTimeBoolean] = useState(false);
-  const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true);
-  const [maxTimeString, setMaxTimeString] = useState("1");
-  const [maxSchedulesString, setMaxSchedulesString] = useState("30");
-  const [maxShiftsString, setMaxShiftsString] = useState("4");
-  const [minMentors, setMinMentors] = useState("1");
-  const [maxMentors, setMaxMentors] = useState("1");
-  const [isLoading, setIsLoading] = useState(false);
-  const [savedMentors, setSavedMentors] = useState<MentorInterface[]>([]);
-  const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]);
-  const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>();
-  const [warningText, setWarningText] = useState("");
+  const [startingTime, setStartingTime] = useState(0); //the timestamp when generation started
+  const [elapsedTime, setElapsedTime] = useState(0); //the # of seconds that has passed since generation has started
+  const [generatingSchedules, setGeneratingSchedules] = useState(false); //if the program is currently generating schedules
+  const [forceAllMentorsBoolean, setForceAllMentorsBoolean] = useState(true); //if the program should only generate schedules where all mentors saved in local storage has at least one shift
+  const [allowNoneSchedules, setAllowNoneSchedules] = useState(false); //If the program will allow nobody to be on shift for a time slot
+  const [maxTimeBoolean, setMaxTimeBoolean] = useState(false); //If there is a time limit on how long generation will take
+  const [maxTimeString, setMaxTimeString] = useState("1"); //The time generation will take (in minutes)
+  const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true); //If generation will stop after a certain amount of schedules has been generated
+  const [maxSchedulesString, setMaxSchedulesString] = useState("30"); //The max amount of schedules that will be found until generation stops
+  const [maxShiftsString, setMaxShiftsString] = useState("4"); //The max amount of shifts each mentor is allowed to work in a week
+  const [minMentors, setMinMentors] = useState("1"); //the minimum amount of mentors that can be scheduled for one shift
+  const [maxMentors, setMaxMentors] = useState("1"); //the maximum amount of mentors that can be scheduled for one shift
+  const [isLoading, setIsLoading] = useState(false); //if the program is loading things from local storage
+  const [savedMentors, setSavedMentors] = useState<MentorInterface[]>([]); //the mentors loaded from local storage
+  const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]); //the mentor names that are loaded from local storage
+  const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>(); //the generated schedules
+  const [warningText, setWarningText] = useState(""); //text that will appear that gives the user information related to their input and the generation
 
   //loading data from local storage
   useEffect(() => {
@@ -60,6 +60,7 @@ const GenerateSchedule = () => {
   //update timer for generating schedules
   useEffect(() => {
     if (generatingSchedules) {
+      console.log("starting time", startingTime);
       let interval = setInterval(() => setElapsedTime(Math.floor((Date.now() - startingTime) / 1000)), 1000);
       return () => {
         clearInterval(interval);
@@ -67,7 +68,6 @@ const GenerateSchedule = () => {
     }
   }, [generatingSchedules]);
 
-  //assumes there is only one person on shift
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -134,6 +134,10 @@ const GenerateSchedule = () => {
     </div>
   );
 
+  /**
+   * generates a collection of schedules based on user
+   * parameters and mentors saved in local storage
+   */
   async function generateSchedules() {
     setWarningText("");
     if (savedMentors.length === 0) {
@@ -176,6 +180,7 @@ const GenerateSchedule = () => {
       return;
     }
 
+    //set the starting time and start generation
     const startTime = new Date().getTime();
     setStartingTime(startTime);
     setElapsedTime(0);
@@ -198,7 +203,6 @@ const GenerateSchedule = () => {
     //get all of the possible shift (one mentor) for each block
     const allDayPossibilities: { [key: string]: Day[] } = {};
 
-
     //todo: if any of "getAllDayPossibilities" return an empty arr, immediately stop generation
     for (const day of days) {
       await new Promise((r) => setTimeout(r, pauseTime));
@@ -212,7 +216,14 @@ const GenerateSchedule = () => {
     console.log(`Estimated number of results is ${expectedResultNumber}`);
     const schedules = [] as any[];
 
-    async function generateSchedulesRecursion(dayIndex: number, currentSchedule: any, scheduleNameList: string[]): Promise<any> {
+    /**
+     * Recursively generates a schedule
+     * @param {number} dayIndex the index of the day that is currently being generated. Ex: 0 is Monday
+     * @param {Schedule} currentSchedule the schedule object that is being generated
+     * @param {string[]} scheduleNameList the name of the mentors that are working (has duplicates to show the same mentor on multiple shifts)
+     * @return {Promise<void|Schedule>} nothing. Return type is for going deeper in recursion. The return value should never be used
+     */
+    async function generateSchedulesRecursion(dayIndex: number, currentSchedule: Schedule, scheduleNameList: string[]): Promise<void|Schedule> {
       //force to wait on Monday, Wednesday and Friday
       if (dayIndex % 2 == 0) {
         await new Promise((r) => setTimeout(r, pauseTime));
@@ -234,12 +245,13 @@ const GenerateSchedule = () => {
       }
 
       const day = days[dayIndex];
+      //verify that the alloted time nor the max amount of schedules generated has not exceeded
       for (const shift of allDayPossibilities[day]) {
         if (maxTimeExceeded(maxTimeNumber, startTime) || maxSchedulesExceeded(maxSchedulesNumber, schedules.length) || schedules.length >= maxSchedulesAllowed) {
           break;
         }
 
-        const shiftNames = Object.values(shift).flatMap((arr) => arr) as unknown as string[];
+        const shiftNames = Object.values(shift).flatMap((arr) => arr) as string[];
         const newScheduleNameList = scheduleNameList.concat(shiftNames);
 
         const newSchedule = { ...currentSchedule, [day]: shift };
@@ -252,7 +264,8 @@ const GenerateSchedule = () => {
       }
     }
 
-    await generateSchedulesRecursion(0, {}, []);
+    //recursively generate all the schedules
+    await generateSchedulesRecursion(0, {} as Schedule, []);
 
     const elapsedSeconds = getElapsedSeconds(startTime);
 
@@ -264,19 +277,30 @@ const GenerateSchedule = () => {
     setGeneratingSchedules(false);
   }
 
-  //refactor number to have commas
-  function numberWithCommas(x: number) {
-    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  /**
+   * formats a number so it's separated by commas
+   * @param {number} number the number that will be formatted
+   * @return {string} the formatted number
+   */
+
+  function numberWithCommas(number: number): string {
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
 
-  //refactor elapsedSeconds to be days, hours, minutes, seconds
-  function formatTime(seconds: number) {
-    const days = Math.floor(seconds / 86400);
-    seconds = seconds % 86400;
-    const hours = Math.floor(seconds / 3600);
-    seconds = seconds % 3600;
-    const minutes = Math.floor(seconds / 60);
-    seconds = seconds % 60;
+  /**
+   * Formats the number of seconds that has passed
+   * into days, hours, minutes, and seconds
+   * @param {number} elapsedSeconds the number of seconds that has elapsed
+   * @return {string} the formatted time
+   */
+
+  function formatTime(elapsedSeconds: number): string {
+    const days = Math.floor(elapsedSeconds / 86400);
+    elapsedSeconds = elapsedSeconds % 86400;
+    const hours = Math.floor(elapsedSeconds / 3600);
+    elapsedSeconds = elapsedSeconds % 3600;
+    const minutes = Math.floor(elapsedSeconds / 60);
+    elapsedSeconds = elapsedSeconds % 60;
 
     let str = "";
     if (days > 0) {
@@ -291,12 +315,17 @@ const GenerateSchedule = () => {
       str += ` ${minutes}m`;
     }
 
-    str += ` ${seconds}s`;
+    str += ` ${elapsedSeconds}s`;
 
     return str.trim();
   }
 
-  //get all the people who can work a specific shift on a specific day and time
+  /**
+   * get all the people who can work a specific shift on a specific day and time
+   * @param {string} specifiedDay the day in question
+   * @param {number} index the idex of the time in question. 0 would be the 10am shift
+   * @return {string[]} all of the people who can work on that shift (with the addition of a "None" element)
+   */
   function getAllTimeShifts(specifiedDay: string, index: number): string[] {
     if (savedMentors === undefined) {
       setWarningText(`There was an error getting all the people who can work on ${specifiedDay} at ${times[0]}`);
@@ -314,18 +343,27 @@ const GenerateSchedule = () => {
     });
 
     //in case nobody can work that shift
-    names.push("None")
+    names.push("None");
 
     return names;
   }
 
-  //Tells how many times each name has occurred in an array
-  //assumes there's only one person in the list
-  function itemCounter(arr: string[], value: string) {
-    return arr.filter((x) => x === value).length;
+  /**
+   * Tells how many times a specific item has occurred in an array
+   * @param {string[]} arr the array of items
+   * @param {string} item the item that will be counted
+   * @return {number} the amount of times the item was found
+   */
+  function itemCounter(arr: string[], item: string): number {
+    return arr.filter((x) => x === item).length;
   }
 
-  function exceedHourLimit(people: string[], maxShiftsNumber: number) {
+  /**
+   * @param {string[]} people the collection of names of mentors who are working
+   * @param {number} maxShiftsNumber the max amount of hours each mentor is allowed to work
+   * @return {boolean} if there is a mentor who is working more than the max amount of hours
+   */
+  function exceedHourLimit(people: string[], maxShiftsNumber: number): boolean {
     const peopleAgg: { [person: string]: number } = {};
     for (const person of people) {
       if (!(person in peopleAgg)) {
@@ -339,9 +377,14 @@ const GenerateSchedule = () => {
     return false;
   }
 
-  function getDropDown(id: string) {
+  /**
+   * Get a dropdown element of all the mentors working a specific day and time
+   * @param {string} id the id of the element that tells the day/time of the shift. Ex: Monday-10
+   * @return {JSX.Element} a select dropdown element where all the options are the relevant mentor names
+   */
+  function getDropDown(id: string): JSX.Element {
     if (isLoading || savedMentors === undefined) {
-      return "";
+      <select></select>;
     }
     const day = id.split("-")[0];
     const time = id.split("-")[1];
@@ -360,29 +403,60 @@ const GenerateSchedule = () => {
     );
   }
 
-  function getElapsedSeconds(startTime: number) {
+  /**
+   * Get the amount of time that has passed in seconds given the start time
+   * @param {number} startTime the timestamp of the starting time
+   * @return {number} the amount of time that has passed in seconds
+   */
+  function getElapsedSeconds(startTime: number): number {
     return Math.floor((new Date().getTime() - startTime) / 1000);
   }
 
-  function getElapsedMinutes(startTime: number) {
+  /**
+   * Get the amount of time that has passed in minutes given the start time
+   * @param {number} startTime the timestamp of the starting time
+   * @return {number} the amount of time that has passed in minutes
+   */
+  function getElapsedMinutes(startTime: number): number {
     const elapsedSeconds = getElapsedSeconds(startTime);
     return Math.floor((elapsedSeconds % 3600) / 60);
   }
 
-  function maxTimeExceeded(maxTimeNumber: number, startTime: number) {
+  /**
+   * Tells if the elapsed amount of time has passed a threshold (in minutes)
+   * @param {number} maxTimeNumber the threshold time (in minutes)
+   * @param {number} startTime the timestamp of the starting time
+   * @return {boolean} if "maxTimeBoolean" is true and the amount of time has exceeded
+   */
+  function maxTimeExceeded(maxTimeNumber: number, startTime: number): boolean {
     const minutes = getElapsedMinutes(startTime);
     return maxTimeBoolean && minutes >= maxTimeNumber;
   }
 
-  function maxSchedulesExceeded(maxScheduleNumber: number, scheduleCount: number) {
+  /**
+   * Tells if the amount of generated schedules has reached or passed the threshold
+   * @param {number} maxScheduleNumber the threshold amount of schedules
+   * @param {number} scheduleCount the current amount of schedules
+   * @return {boolean} if "maxSchedulesBoolean" and scheduleCount is greater or equal to maxScheduleNumber
+   */
+  function maxSchedulesExceeded(maxScheduleNumber: number, scheduleCount: number): boolean {
     return maxSchedulesBoolean && scheduleCount >= maxScheduleNumber;
   }
 
+  /**
+   * Get all of the possible Day generations for a specific day
+   * @param {string} day the name of the day of possibilities that are being generated
+   * @param {FilterInterface} filters the relevant filters that are related to the day that is being generated
+   * @param {string} maxShift the max amount of shifts each mentor is allowed to work in a week
+   * @param {string} minMentorPerShift the minimum amount of mentors that are schedule for a shift
+   * @param {string} maxMentorPerShift the maximum amount of mentors that are schedule for a shift
+   * @return {Day[]} all of the possible configurations of the day (max count is "maxDayPossibilities". Look at top of the file)
+   */
   function getAllDayPossibilities(day: string, filters: FilterInterface[], maxShift: number, minMentorPerShift: number, maxMentorPerShift: number): Day[] {
     interface DayInfo {
       day: Day;
       maxMentorCount: number;
-      nameList: string[]
+      nameList: string[];
     }
 
     const allDayPossibilities: DayInfo[] = []; //all possibilities of the parameter "day"
@@ -424,7 +498,7 @@ const GenerateSchedule = () => {
 
     function getMaxNameCount(day: DayInfo) {
       //don't include "None" in the max count
-      const nameList = day.nameList.filter(name => name !== "None");
+      const nameList = day.nameList.filter((name) => name !== "None");
       const distinctNames = nameList.filter(onlyUnique);
       const nameCount = distinctNames.map((name) => itemCounter(nameList, name));
       return Math.max(...nameCount);
@@ -436,12 +510,10 @@ const GenerateSchedule = () => {
     const notNoneArr = [];
 
     //prioritize day possibilities where "None" is not present
-    for(const possibility of sortedPossibilities) {
-      if(possibility.nameList.includes("None")) {
+    for (const possibility of sortedPossibilities) {
+      if (possibility.nameList.includes("None")) {
         noneArr.push(possibility.day);
-      }
-
-      else {
+      } else {
         notNoneArr.push(possibility.day);
       }
     }
@@ -449,7 +521,16 @@ const GenerateSchedule = () => {
     return notNoneArr.concat(noneArr);
   }
 
-  function getTotalCombination(day: string, index: number, filters: FilterInterface[], min: number, max: number) {
+  /**
+   * Get all of the possible combinations of mentors who can work a specific day and time
+   * @param {string} day the name of the day of the shift that is be generated
+   * @param {number} index the index of the time of the shift that is be generated. Ex: 0 is the 10am shift
+   * @param {FilterInterface[]} filters the relevant filters of that specific day and time
+   * @param {number} min the minimum amount of mentors that is allowed per shift
+   * @param {number} max the maximum amount of mentors that is allowed per shift
+   * @return {string[][]} all of the possible combinations of shifts
+   */
+  function getTotalCombination(day: string, index: number, filters: FilterInterface[], min: number, max: number): string[][] {
     //get a list of the mentors
     const mentors = getAllTimeShifts(day, index);
     const results: string[][] = [];
@@ -466,24 +547,30 @@ const GenerateSchedule = () => {
         }
       }
     }
-    
-    const filteredResults = [];
-      for(const result of results) {
-        //only allow ["None"] if "allowNoneSchedules" is true
-        if(allowNoneSchedules && result.length == 1) {
-          filteredResults.push(result);
-          continue;
-        }
-  
-        //remove results that have "None" as a mentor if they have a length more than 1
-        if(!result.includes("None")) {
-          filteredResults.push(result);
-        }
+
+    const filteredResults = [] as string[][];
+    for (const result of results) {
+      //only allow ["None"] if "allowNoneSchedules" is true
+      if (allowNoneSchedules && result.length == 1) {
+        filteredResults.push(result);
+        continue;
       }
+
+      //remove results that have "None" as a mentor if they have a length more than 1
+      if (!result.includes("None")) {
+        filteredResults.push(result);
+      }
+    }
 
     return filteredResults;
   }
 
+  /**
+   * Get all of the combinations given a collection
+   * @param {string[]} array the collection of items
+   * @param {number} length the number of items that will be chosen
+   * @return {string[][]} All of the combinations
+   */
   function getCombinations(array: string[], length: number): string[][] {
     const result: string[][] = [];
 
