@@ -17,11 +17,14 @@ const GenerateSchedule = () => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [generatingSchedules, setGeneratingSchedules] = useState(false);
   const [forceAllMentorsBoolean, setForceAllMentorsBoolean] = useState(true);
+  const [allowNoneSchedules, setAllowNoneSchedules] = useState(false);
   const [maxTimeBoolean, setMaxTimeBoolean] = useState(false);
   const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true);
   const [maxTimeString, setMaxTimeString] = useState("1");
   const [maxSchedulesString, setMaxSchedulesString] = useState("30");
   const [maxShiftsString, setMaxShiftsString] = useState("4");
+  const [minMentors, setMinMentors] = useState("1");
+  const [maxMentors, setMaxMentors] = useState("1");
   const [isLoading, setIsLoading] = useState(false);
   const [savedMentors, setSavedMentors] = useState<MentorInterface[]>([]);
   const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]);
@@ -72,6 +75,15 @@ const GenerateSchedule = () => {
       <h4>Force All Mentors</h4>
       <input type="checkbox" checked={forceAllMentorsBoolean} onChange={(e) => setForceAllMentorsBoolean(e.target.checked)} />
       <p>Only gives schedules where all mentors have at least one shift</p>
+      <h4>Allow None Schedules</h4>
+      <input type="checkbox" checked={allowNoneSchedules} onChange={(e) => setAllowNoneSchedules(e.target.checked)} />
+      <p>Allow schedules where no one is schedules for a shift</p>
+      <h4>Mentors per shift</h4>
+      <p>The min/max amount of mentors per shift</p>
+      <p>Min</p>
+      <input type="text" value={minMentors} onChange={(e) => setMinMentors(e.target.value)} />
+      <p>Max</p>
+      <input type="text" value={maxMentors} onChange={(e) => setMaxMentors(e.target.value)} />
       <h4>Max Shifts</h4>
       <p>The max amount of shifts each mentor is allowed to work in a week</p>
       <input type="text" value={maxShiftsString} onChange={(e) => setMaxShiftsString(e.target.value)}></input>
@@ -110,7 +122,6 @@ const GenerateSchedule = () => {
       <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
         Generate schedules
       </button>
-      <button onClick={() => getAllSchedules()}>Get Permutations</button>
       {generatingSchedules && (
         <div>
           <p>Generating Schedules...{formatTime(elapsedTime)}</p>
@@ -146,9 +157,20 @@ const GenerateSchedule = () => {
       return;
     }
 
-    //todo: remove this once combination is implemented
-    if (forceAllMentorsBoolean && savedMentorNames.length > 40) {
-      setWarningText(`Impossible to have ${savedMentorNames.length} mentors have at least one shift`);
+    const minMentorsNumber = parseInt(minMentors);
+    if (Number.isNaN(minMentorsNumber) || minMentorsNumber < 1) {
+      setWarningText('"Min Mentors per shift" needs to be a number greater than 0');
+      return;
+    }
+
+    const maxMentorsNumber = parseInt(maxMentors);
+    if (Number.isNaN(maxMentorsNumber) || maxMentorsNumber < 1) {
+      setWarningText('"Max Mentors per shift" needs to be a number greater than 0');
+      return;
+    }
+
+    if (minMentorsNumber > maxMentorsNumber) {
+      setWarningText('"Min Mentors per shift" needs to be a number less than "Max Mentors per shift"');
       return;
     }
 
@@ -176,11 +198,10 @@ const GenerateSchedule = () => {
 
     for (const day of days) {
       await new Promise((r) => setTimeout(r, pauseTime));
-      let possibilities = getDayShifts(day, maxShiftsNumber);
-      possibilities = findLeastNoneShifts(possibilities);
-      possibilities = applyCustomFilters(possibilities, day, filters);
-      allDayPossibilities[day] = possibilities;
+      allDayPossibilities[day] = getAllDayPossibilities(day, filters, maxShiftsNumber, minMentorsNumber, maxMentorsNumber);
+
     }
+    console.log(allDayPossibilities["Monday"]);
 
     //the length of all possibilities multiplied together
     const expectedResultNumber = Object.values(allDayPossibilities).reduce((preVal, possibilities) => preVal * possibilities.length, 1);
@@ -271,50 +292,6 @@ const GenerateSchedule = () => {
     return str.trim();
   }
 
-  //get all the shifts for a specific day
-  function getDayShifts(specifiedDay: string, maxShiftsNumber: number): Day[] {
-    if (savedMentors === undefined) {
-      setWarningText(`There was an error getting day shifts for ${specifiedDay}`);
-      return [];
-    }
-
-    const allAvailableMentors: { [key: string]: string[] } = {};
-
-    for (const time of times) {
-      const timeShift = getAllTimeShifts(specifiedDay, times.indexOf(time));
-      console.log(timeShift);
-      // Todo: refactor this so in the rare case this does happen, make it so this error is handled
-      if (timeShift === undefined) {
-        console.log("A problem occurred");
-        return [];
-      }
-      allAvailableMentors[time] = timeShift;
-    }
-
-    // All of the possible ways to configure a day (assumes having 1 mentor per shift)
-    const allDayPossibilities: Day[] = [];
-
-    function getAllDayPossibilities(timeIndex: number, currentDaySchedule: any) {
-      //base case 5pm has been processed
-      if (timeIndex >= times.length) {
-        const names = Object.values(currentDaySchedule).flatMap((arr) => arr) as unknown as string[];
-        if (!exceedHourLimit(names, maxShiftsNumber)) {
-          allDayPossibilities.push(currentDaySchedule);
-        }
-        return currentDaySchedule;
-      }
-
-      const time = times[timeIndex];
-      for (const shift of allAvailableMentors[time]) {
-        const newSchedule = { ...currentDaySchedule, [time]: [shift] };
-        getAllDayPossibilities(timeIndex + 1, newSchedule);
-      }
-    }
-
-    getAllDayPossibilities(0, {});
-    return allDayPossibilities;
-  }
-
   //get all the people who can work a specific shift on a specific day and time
   function getAllTimeShifts(specifiedDay: string, index: number): string[] {
     if (savedMentors === undefined) {
@@ -322,8 +299,8 @@ const GenerateSchedule = () => {
       return [];
     }
 
-    //automatically assume that nobody working the shift is an option
-    const shifts = ["None"];
+    //todo find a better name for this variable besides "shifts"
+    const shifts = [] as string[];
 
     //assume one mentor is working the shift
     savedMentors.forEach((m) => {
@@ -333,6 +310,9 @@ const GenerateSchedule = () => {
         }
       });
     });
+
+    //in case nobody is working that shift
+    shifts.push("None")
 
     return shifts;
   }
@@ -422,137 +402,12 @@ const GenerateSchedule = () => {
     return maxSchedulesBoolean && scheduleCount >= maxScheduleNumber;
   }
 
-  function getAllSchedules() {
-    //todo get the parameter from the user
-    const maxShifts = 4;
-    const maxSchedules = 1;
-    // const filters: FilterInterface[] = [];
-
-    //dummy filters just so I don't have set the drop downs every time
-    const filters: FilterInterface[] = [
-        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "10"},
-        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "11"},
-        {selectedMentor: "Abigail Cawley", selectedDay: "Monday", selectedTime: "12"},
-        {selectedMentor: "Anthony", selectedDay: "Monday", selectedTime: "1"},
-        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "2"},
-        {selectedMentor: "Cooper Mistishin", selectedDay: "Monday", selectedTime: "3"},
-        {selectedMentor: "Aneesh Bukya", selectedDay: "Monday", selectedTime: "4"},
-        {selectedMentor: "Abigail Cawley", selectedDay: "Monday", selectedTime: "5"},
-
-        {selectedMentor: "Max", selectedDay: "Tuesday", selectedTime: "10"},
-        {selectedMentor: "Tristen", selectedDay: "Tuesday", selectedTime: "11"},
-        {selectedMentor: "Andrew Lee", selectedDay: "Tuesday", selectedTime: "12"},
-        {selectedMentor: "Sylvia", selectedDay: "Tuesday", selectedTime: "1"},
-        {selectedMentor: "Anthony", selectedDay: "Tuesday", selectedTime: "2"},
-        {selectedMentor: "Ethan Ricker", selectedDay: "Tuesday", selectedTime: "3"},
-        {selectedMentor: "Andrew Lee", selectedDay: "Tuesday", selectedTime: "4"},
-        {selectedMentor: "Abigail Cawley", selectedDay: "Tuesday", selectedTime: "5"},
-
-        {selectedMentor: "Evan Kinsey", selectedDay: "Wednesday", selectedTime: "10"},
-        {selectedMentor: "Max", selectedDay: "Wednesday", selectedTime: "11"},
-        {selectedMentor: "Abigail Cawley", selectedDay: "Wednesday", selectedTime: "12"},
-        {selectedMentor: "Anthony", selectedDay: "Wednesday", selectedTime: "1"},
-        {selectedMentor: "Ethan Ricker", selectedDay: "Wednesday", selectedTime: "2"},
-        {selectedMentor: "Evan Kinsey", selectedDay: "Wednesday", selectedTime: "3"},
-        {selectedMentor: "Aneesh Bukya", selectedDay: "Wednesday", selectedTime: "4"},
-        {selectedMentor: "Aneesh Bukya", selectedDay: "Wednesday", selectedTime: "5"},
-
-        {selectedMentor: "Max", selectedDay: "Thursday", selectedTime: "10"},
-        {selectedMentor: "Tristen", selectedDay: "Thursday", selectedTime: "11"},
-        {selectedMentor: "Sylvia", selectedDay: "Thursday", selectedTime: "12"},
-        {selectedMentor: "Andrew Lee", selectedDay: "Thursday", selectedTime: "1"},
-        {selectedMentor: "Anthony", selectedDay: "Thursday", selectedTime: "2"},
-        {selectedMentor: "Brooklyn Furze", selectedDay: "Thursday", selectedTime: "3"},
-        {selectedMentor: "Brooklyn Furze", selectedDay: "Thursday", selectedTime: "4"},
-        {selectedMentor: "Brooklyn Furze", selectedDay: "Thursday", selectedTime: "5"},
-
-        {selectedMentor: "Evan Kinsey", selectedDay: "Friday", selectedTime: "10"},
-        {selectedMentor: "Max", selectedDay: "Friday", selectedTime: "11"},
-        {selectedMentor: "Ethan Ricker", selectedDay: "Friday", selectedTime: "12"},
-        {selectedMentor: "Hridiza", selectedDay: "Friday", selectedTime: "1"},
-        {selectedMentor: "Ryan Yocum", selectedDay: "Friday", selectedTime: "2"},
-        {selectedMentor: "Ethan Ricker", selectedDay: "Friday", selectedTime: "3"},
-        {selectedMentor: "Brooklyn Furze", selectedDay: "Friday", selectedTime: "4"},
-        {selectedMentor: "Jonah Edick", selectedDay: "Friday", selectedTime: "5"},
-    ];
-
-
-    for (const selectedDay of days) {
-      for (const selectedTime of times) {
-        const selectedMentor = (document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement).value;
-        if (selectedMentor !== "Any") {
-          filters.push({ selectedMentor, selectedDay, selectedTime });
-        }
-      }
-    }
-
-    const allDayPossibilities: { [key: string]: Day[] } = {};
-
-    for (let i = 0; i < days.length; i++) {
-      const day = days[i];
-      const filtersByDay = filters.filter((f) => f.selectedDay === day);
-      allDayPossibilities[day] = getAllDayPermutationsRecursion(day, filtersByDay);
-      console.log(allDayPossibilities[day])
-    }
-
-    const schedules: Schedule[] = [];
-
-    //todo if there are filters and any of the day possibilities are empty, say zero results are found
-
-    function generateSchedulesRecursion(dayIndex: number, currentSchedule: Schedule, scheduleNameList: string[]) {
-        //force to wait on Monday, Wednesday and Friday
-        // if (dayIndex % 2 == 0) {
-        //   await new Promise((r) => setTimeout(r, pauseTime));
-        // }
-  
-        //base case: Friday has been processed
-        if (dayIndex >= days.length) {
-            console.log("base case met");
-          if (forceAllMentorsBoolean) {
-            const peopleCount = savedMentorNames.map((name) => itemCounter(scheduleNameList, name));
-            if (peopleCount.every((num) => num > 0)) {
-              schedules.push(currentSchedule);
-            }
-          } else {
-              schedules.push(currentSchedule);
-          }
-  
-          setSchedulesFound(schedules.length);
-          return currentSchedule;
-        }
-  
-        const day = days[dayIndex];
-        for (const shift of allDayPossibilities[day]) {
-          if (maxSchedulesExceeded(maxSchedules, schedules.length) || schedules.length >= maxSchedulesAllowed) {
-            break;
-          }
-  
-          const shiftNames = Object.values(shift).flatMap((arr) => arr) as string[];
-          const newScheduleNameList = scheduleNameList.concat(shiftNames);
-  
-          const newSchedule = { ...currentSchedule, [day]: shift };
-          //verify that nobody has worked more than the max amount of hours
-          if (exceedHourLimit(newScheduleNameList, maxShifts)) {
-                continue;
-          }
-  
-          generateSchedulesRecursion(dayIndex + 1, newSchedule, newScheduleNameList);
-        }
-      }
-
-      generateSchedulesRecursion(0, {} as Schedule, [])
-
-    console.log(schedules);
-  }
-
-  function getAllDayPermutationsRecursion(day: string, filters: FilterInterface[]): Day[] {
+  function getAllDayPossibilities(day: string, filters: FilterInterface[], maxShift: number, minMentorPerShift: number, maxMentorPerShift: number): Day[] {
     //todo: get a better name for this interface
     interface DayNum {
-        day: Day,
-        count: number;
+      day: Day;
+      count: number;
     }
-    //todo replace the "max shift" parameter
-    const maxShift = 4;
     //todo make this a parameter at the top of the file
     const maxPossibilities = 1000000; //max # of day possibilities generated
     const allDayPossibilities: DayNum[] = [];
@@ -560,9 +415,8 @@ const GenerateSchedule = () => {
     const shiftPossibilities: { [key: string]: string[][] } = {};
 
     for (let i = 0; i < times.length; i++) {
-      //todo: replace [] with the filters for that specific day/time
       const filterByTime = filters.filter((f) => f.selectedTime === times[i]);
-      shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime);
+      shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime, minMentorPerShift, maxMentorPerShift);
     }
 
     //todo give this method a better name
@@ -570,7 +424,7 @@ const GenerateSchedule = () => {
       if (timeIndex >= times.length) {
         const names = Object.values(currentDaySchedule).flatMap((arr) => arr) as string[];
         if (!exceedHourLimit(names, maxShift)) {
-          allDayPossibilities.push({day: currentDaySchedule, count: getMaxNameCount(currentDaySchedule)});
+          allDayPossibilities.push({ day: currentDaySchedule, count: getMaxNameCount(currentDaySchedule) });
         }
         return currentDaySchedule;
       }
@@ -599,14 +453,10 @@ const GenerateSchedule = () => {
     }
 
     //sort the possibilities by the least peak "mentor count"
-    return allDayPossibilities.sort((a, b) => a.count - b.count).map(possibility => possibility.day);
+    return allDayPossibilities.sort((a, b) => a.count - b.count).map((possibility) => possibility.day);
   }
 
-  function getTotalCombination(day: string, index: number, filters: FilterInterface[]) {
-    //todo replace this with parameters from the user
-    const max = 3;
-    const min = 1;
-
+  function getTotalCombination(day: string, index: number, filters: FilterInterface[], min: number, max: number) {
     //get a list of the mentors
     const mentors = getAllTimeShifts(day, index);
     const results: string[][] = [];
@@ -623,8 +473,22 @@ const GenerateSchedule = () => {
         }
       }
     }
+    
+    const filteredResults = [];
+      for(const result of results) {
+        //only allow ["None"] if "allowNoneSchedules" is true
+        if(allowNoneSchedules && result.length == 1) {
+          filteredResults.push(result);
+          continue;
+        }
+  
+        //remove results that have "None" as a mentor if they have a length more than 1
+        if(!result.includes("None")) {
+          filteredResults.push(result);
+        }
+      }
 
-    return results;
+    return filteredResults;
   }
 
   function getCombinations(array: string[], length: number): string[][] {
@@ -645,17 +509,7 @@ const GenerateSchedule = () => {
 
     generate([], 0);
 
-    // remove any arrays with "None"
-    const finalResults: string[][] = [];
-
-    for (const arr of result) {
-      if (arr.includes("None")) {
-        continue;
-      }
-
-      finalResults.push(arr);
-    }
-    return finalResults;
+    return result;
   }
 };
 

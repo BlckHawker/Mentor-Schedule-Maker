@@ -47,8 +47,11 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Sc
 
 
     if (mentors.length == 1) {
+        //colorObj should only be undefined iff the mentor name is "None"
         const colorObj = colorDictionary.find((obj: any) => obj.name === schedule[day][time][0]);
-        return <td key={day} style={{ backgroundColor: colorObj.color, color: colorObj.dark ? "white" : "black" }}>{mentors[0]}</td>
+        const backgroundColor = colorObj?.color ?? "white";
+        const color = colorObj?.dark ? "white" : "black";
+        return <td key={day} style={{ backgroundColor: backgroundColor, color: color }}>{mentors[0]}</td>
     }
 
     return <td key={day}>Not Implemented Yet</td>
