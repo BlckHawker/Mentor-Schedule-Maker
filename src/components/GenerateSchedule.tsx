@@ -446,7 +446,8 @@ const GenerateSchedule = () => {
     }
 
     function getMaxNameCount(day: Day) {
-      const nameList = Object.values(day).flatMap((arr) => arr);
+      //don't include "None" in the max count
+      const nameList = Object.values(day).flatMap((arr) => arr).filter(name => name !== "None");
       const distinctNames = nameList.filter(onlyUnique);
       const nameCount = distinctNames.map((name) => itemCounter(nameList, name));
       return Math.max(...nameCount);
@@ -454,7 +455,6 @@ const GenerateSchedule = () => {
 
     //sort the possibilities by the least peak "mentor count"
     const sortedPossibilities = allDayPossibilities.sort((a, b) => a.count - b.count).map((possibility) => possibility.day);
-    console.log("Sorted Possibilities", sortedPossibilities)
     const noneArr = [];
     const notNoneArr = [];
 
@@ -471,7 +471,6 @@ const GenerateSchedule = () => {
     }
 
     return notNoneArr.concat(noneArr);
-
   }
 
   function getTotalCombination(day: string, index: number, filters: FilterInterface[], min: number, max: number) {
