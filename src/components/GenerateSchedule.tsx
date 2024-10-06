@@ -8,7 +8,9 @@ import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 const GenerateSchedule = () => {
   const pauseTime = 1;
-  const maxSchedulesAllowed = 1000000; //physically can't add anymore to an array
+  const maxSchedulesAllowed = 1000000; //max # of generated schedules
+  const maxDayPossibilities = 1000000; //max # of day possibilities generated
+
   const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3";
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
@@ -196,6 +198,8 @@ const GenerateSchedule = () => {
     //get all of the possible shift (one mentor) for each block
     const allDayPossibilities: { [key: string]: Day[] } = {};
 
+
+    //todo: if any of "getAllDayPossibilities" return an empty arr, immediately stop generation
     for (const day of days) {
       await new Promise((r) => setTimeout(r, pauseTime));
       allDayPossibilities[day] = getAllDayPossibilities(day, filters, maxShiftsNumber, minMentorsNumber, maxMentorsNumber);
@@ -299,22 +303,20 @@ const GenerateSchedule = () => {
       return [];
     }
 
-    //todo find a better name for this variable besides "shifts"
-    const shifts = [] as string[];
+    const names = [] as string[];
 
-    //assume one mentor is working the shift
     savedMentors.forEach((m) => {
       Object.keys(m.availability).forEach((day) => {
         if (day == specifiedDay && m.availability[day as keyof MentorInterface["availability"]][index]) {
-          shifts.push(m.name);
+          names.push(m.name);
         }
       });
     });
 
-    //in case nobody is working that shift
-    shifts.push("None")
+    //in case nobody can work that shift
+    names.push("None")
 
-    return shifts;
+    return names;
   }
 
   //Tells how many times each name has occurred in an array
@@ -335,32 +337,6 @@ const GenerateSchedule = () => {
       }
     }
     return false;
-  }
-
-  //find the least amount of times None appears in a day
-  function findLeastNoneShifts(allDayShifts: Day[]) {
-    const noneShiftCount = allDayShifts.map((possibility: Day) => {
-      return Object.values(possibility)
-        .map((arr) => arr[0])
-        .filter((name) => name === "None").length;
-    });
-
-    let smallestNumber = structuredClone(noneShiftCount).sort()[0];
-    const desiredShifts = allDayShifts.filter((_, ix) => noneShiftCount[ix] == smallestNumber);
-    return desiredShifts;
-  }
-
-  //filter out shifts based custom filters
-  function applyCustomFilters(allDayShifts: Day[], specifiedDay: string, filters: FilterInterface[]) {
-    if (Object.values(filters).length === 0) return allDayShifts;
-    const relevantFilters = Object.values(filters).filter((filter) => filter.selectedDay === specifiedDay);
-    //apply filter on each day
-    let filteredDays = [...allDayShifts]; // Don't modify the original
-    for (const filter of relevantFilters) {
-      filteredDays = filteredDays.filter((day) => day[filter.selectedTime as keyof Day].includes(filter.selectedMentor));
-    }
-
-    return filteredDays;
   }
 
   function getDropDown(id: string) {
@@ -403,32 +379,28 @@ const GenerateSchedule = () => {
   }
 
   function getAllDayPossibilities(day: string, filters: FilterInterface[], maxShift: number, minMentorPerShift: number, maxMentorPerShift: number): Day[] {
-    //todo: get a better name for this interface
-    interface DayNum {
+    interface DayInfo {
       day: Day;
-      count: number;
+      maxMentorCount: number;
       nameList: string[]
     }
-    //todo make this a parameter at the top of the file
-    const maxPossibilities = 1000000; //max # of day possibilities generated
-    const allDayPossibilities: DayNum[] = [];
 
-    const shiftPossibilities: { [key: string]: string[][] } = {};
+    const allDayPossibilities: DayInfo[] = []; //all possibilities of the parameter "day"
+    const shiftPossibilities: { [key: string]: string[][] } = {}; //all possibilities of a specific time of the "day" parameter
 
     for (let i = 0; i < times.length; i++) {
-      const filterByTime = filters.filter((f) => f.selectedTime === times[i]);
+      const filterByTime = filters.filter((f) => f.selectedTime === times[i]); //all of the relevant filters of the day and time
       shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime, minMentorPerShift, maxMentorPerShift);
     }
 
-    //todo give this method a better name
-    function m(timeIndex: number, currentDaySchedule: Day) {
+    function generateDayPossibility(timeIndex: number, currentDaySchedule: Day) {
       if (timeIndex >= times.length) {
         const names = Object.values(currentDaySchedule).flatMap((arr) => arr) as string[];
         if (!exceedHourLimit(names, maxShift)) {
-          const dayObj = {} as DayNum;
+          const dayObj = {} as DayInfo;
           dayObj.day = currentDaySchedule;
           dayObj.nameList = names;
-          dayObj.count = getMaxNameCount(dayObj);
+          dayObj.maxMentorCount = getMaxNameCount(dayObj);
           allDayPossibilities.push(dayObj);
         }
         return currentDaySchedule;
@@ -436,21 +408,21 @@ const GenerateSchedule = () => {
 
       const time = times[timeIndex];
       for (const shift of shiftPossibilities[time]) {
-        if (allDayPossibilities.length >= maxPossibilities) {
+        if (allDayPossibilities.length >= maxDayPossibilities) {
           break;
         }
         const newSchedule = { ...currentDaySchedule, [time]: shift };
-        m(timeIndex + 1, newSchedule);
+        generateDayPossibility(timeIndex + 1, newSchedule);
       }
     }
 
-    m(0, {} as Day);
+    generateDayPossibility(0, {} as Day);
 
     function onlyUnique(value: string, index: number, array: string[]) {
       return array.indexOf(value) === index;
     }
 
-    function getMaxNameCount(day: DayNum) {
+    function getMaxNameCount(day: DayInfo) {
       //don't include "None" in the max count
       const nameList = day.nameList.filter(name => name !== "None");
       const distinctNames = nameList.filter(onlyUnique);
@@ -459,7 +431,7 @@ const GenerateSchedule = () => {
     }
 
     //sort the possibilities by the least peak "mentor count"
-    const sortedPossibilities = allDayPossibilities.sort((a, b) => a.count - b.count);
+    const sortedPossibilities = allDayPossibilities.sort((a, b) => a.maxMentorCount - b.maxMentorCount);
     const noneArr = [];
     const notNoneArr = [];
 
