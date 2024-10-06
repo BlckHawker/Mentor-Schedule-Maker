@@ -453,7 +453,25 @@ const GenerateSchedule = () => {
     }
 
     //sort the possibilities by the least peak "mentor count"
-    return allDayPossibilities.sort((a, b) => a.count - b.count).map((possibility) => possibility.day);
+    const sortedPossibilities = allDayPossibilities.sort((a, b) => a.count - b.count).map((possibility) => possibility.day);
+    console.log("Sorted Possibilities", sortedPossibilities)
+    const noneArr = [];
+    const notNoneArr = [];
+
+    //prioritize day possibilities where "None" is not present
+    for(const possibility of sortedPossibilities) {
+      //todo: "Object.values(possibility).flatMap(arr => arr)" is being used a lot, see if you can old the value within the object
+      if(Object.values(possibility).flatMap(arr => arr).includes("None")) {
+        noneArr.push(possibility);
+      }
+
+      else {
+        notNoneArr.push(possibility);
+      }
+    }
+
+    return notNoneArr.concat(noneArr);
+
   }
 
   function getTotalCombination(day: string, index: number, filters: FilterInterface[], min: number, max: number) {
