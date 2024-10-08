@@ -233,7 +233,18 @@ const GenerateSchedule = () => {
       return;
     }
 
-    //todo: if there's at least one "None" filter, but "Allow None Schedules" is true, set a warning
+    //if there's a shift where all filters are "None", but "Allow None Schedules" is false, set a warnings
+    //todo make getting relevant filters a method as this is used somewhere else
+    for(const day of days) {
+      for(const time of times) {
+        const relevantFilters = getRelevantFilters(filters, day, time);
+        if(relevantFilters.every(f => f.selectedMentor === "None") && !allowNoneSchedules) {
+          setGeneratingSchedules(false);
+          setWarningText(`Can't generate schedules for ${day} at ${time} as filtered Mentors are are all set to "None". But "Allow None Schedules" is set to false`)
+          return;
+        }
+      }
+    }
 
     console.log(filters);
 
@@ -312,6 +323,18 @@ const GenerateSchedule = () => {
     //play sound to notify user that generation is done
     new Audio(notifSound).play();
     setGeneratingSchedules(false);
+  }
+
+
+  /**
+   * Gets all the filters for a specific day and time 
+   * @param {FilterInterface[]} allFilters all of the filters
+   * @param {string} day the desired day of the filters
+   * @param {string} time the desired time of the filters
+   * @return {FilterInterface[]} the filters that match the given day and time
+   */
+  function getRelevantFilters(allFilters: FilterInterface[], day: string, time: string): FilterInterface[] {
+    return allFilters.filter(f => f.selectedDay === day && f.selectedTime === time);
   }
 
   /**
@@ -512,30 +535,45 @@ const GenerateSchedule = () => {
     
     for (let i = 0; i < times.length; i++) {
 
-      const relevantFilters = filters.filter((f) => f.selectedDay === day && f.selectedTime === times[i]); //all of the relevant filters of the day and time
+      const relevantFilters = getRelevantFilters(filters, day, times[i]);
       const nonNoneFilters = relevantFilters.filter(f => f.selectedMentor !== "None"); //filters where "None" is not an option
-      const noneFilters = relevantFilters.filter(f => f.selectedMentor === "None");
+      const noneFilterCount = relevantFilters.length - nonNoneFilters.length; //the number of filters where "None is the options"
+      let targetedFilters = [] as FilterInterface[]; //the filters that will be used while generating day possibilities 
+      
       //calculate the new minMentorPerShift and maxMentorPerShift based on the filters
-      const newMaxMentorPerShift = maxMentorPerShift === noneFilters.length ? maxMentorPerShift : maxMentorPerShift - noneFilters.length;
+      const newMaxMentorPerShift = maxMentorPerShift === noneFilterCount ? 1 : maxMentorPerShift - noneFilterCount;
 
       let newMinMentorPerShift;
+      let allNoneFilters = false;
+      
+      //there are no relevant filters
       if(relevantFilters.length === 0) {
+        targetedFilters = [];
         newMinMentorPerShift = minMentorPerShift;
       }
-      else if(noneFilters.length === maxMentorPerShift) {
-        newMinMentorPerShift = maxMentorPerShift;
+      //all the filters are "None" and the "None" count is maxMentorPerShift
+      else if(noneFilterCount === maxMentorPerShift) {
+        allNoneFilters = true;
+        newMinMentorPerShift = 1;
+
       }
-      else if(relevantFilters.length === noneFilters.length) {
+
+      //all the filters are "None"
+      else if(relevantFilters.length === noneFilterCount) {
         newMinMentorPerShift = minMentorPerShift;
       }
+
       else {
         newMinMentorPerShift = nonNoneFilters.length;
+        targetedFilters = [];
       }
 
-      console.log(newMinMentorPerShift, "newMinMentorPerShift")
+      if(allNoneFilters && noneFilterCount > 0) {
+        targetedFilters.push({selectedDay: day, selectedTime: times[i], selectedMentor: "None"}); 
+      }
 
-      
-      shiftPossibilities[times[i]] = getTotalCombination(day, i, nonNoneFilters, newMinMentorPerShift, newMaxMentorPerShift);
+      targetedFilters = targetedFilters.concat(nonNoneFilters);
+      shiftPossibilities[times[i]] = getTotalCombination(day, i, targetedFilters, newMinMentorPerShift, newMaxMentorPerShift);
     }
 
     function generateDayPossibility(timeIndex: number, currentDaySchedule: Day) {
