@@ -45,16 +45,31 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Sc
     //get the mentors who work that specific block
     const mentors = schedule[day][time];
 
+    switch(mentors.length)
+    {
+        case 1:
+        const obj = getMentorDisplayInfo(0);
+        return <td key={day} style={{ backgroundColor: obj.backgroundColor, color: obj.color }}>{mentors[0]}</td>
+        case 2:
+        return <td key={day}>{[0,1].map(num => getMentorDisplayDiv(num))}</td>
+        default:
+        return <td key={day}>Not Implemented Yet</td>
 
-    if (mentors.length == 1) {
-        //colorObj should only be undefined iff the mentor name is "None"
-        const colorObj = colorDictionary.find((obj: any) => obj.name === schedule[day][time][0]);
-        const backgroundColor = colorObj?.color ?? "white";
-        const color = colorObj?.dark ? "white" : "black";
-        return <td key={day} style={{ backgroundColor: backgroundColor, color: color }}>{mentors[0]}</td>
     }
 
-    return <td key={day}>Not Implemented Yet</td>
+    function getMentorDisplayDiv(index: number) {
+        const obj = getMentorDisplayInfo(index);
+        return <div style={{ backgroundColor: obj.backgroundColor, color: obj.color }}>{mentors[index]}</div>
 
+    }
+
+    function getMentorDisplayInfo(index: number) {
+        //colorObj should only be undefined iff the mentor name is "None"
+        const colorObj = colorDictionary.find((obj: any) => obj.name === schedule[day][time][index]);
+        const backgroundColor = colorObj?.color ?? "white";
+        const color = colorObj?.dark ? "white" : "black";
+
+        return {colorObj, backgroundColor, color};
+    }
 }
 export default IndividualSchedule;
