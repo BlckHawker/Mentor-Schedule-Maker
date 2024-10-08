@@ -11,6 +11,7 @@ const GenerateSchedule = () => {
   const maxSchedulesAllowed = 1000000; //max # of generated schedules
   const maxDayPossibilities = 1000000; //max # of day possibilities generated
 
+
   const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3"; //the sound that will play when generation finishes
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]; //the days a mentor is allowed to work
   const times = ["10", "11", "12", "1", "2", "3", "4", "5"]; //the times a mentor is allowed to work
@@ -232,6 +233,8 @@ const GenerateSchedule = () => {
       return;
     }
 
+    //todo: if there's at least one "None" filter, but "Allow None Schedules" is true, set a warning
+
     console.log(filters);
 
     //get all of the possible shift (one mentor) for each block
@@ -435,8 +438,6 @@ const GenerateSchedule = () => {
         ))}
       </select>
     )
-
-    console.log(filtersMaxMentor)
     //todo: change this to be dynamic
     switch(filtersMaxMentor)
     {
@@ -510,9 +511,31 @@ const GenerateSchedule = () => {
     const shiftPossibilities: { [key: string]: string[][] } = {}; //all possibilities of a specific time of the "day" parameter
     
     for (let i = 0; i < times.length; i++) {
-      const filterByTime = filters.filter((f) => f.selectedDay === day && f.selectedTime === times[i]); //all of the relevant filters of the day and time
-      const nonNoneFilters = filterByTime.filter(f => f.selectedMentor !== "None"); //filters where "None" is not an option
-      shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime, minMentorPerShift, maxMentorPerShift);
+
+      const relevantFilters = filters.filter((f) => f.selectedDay === day && f.selectedTime === times[i]); //all of the relevant filters of the day and time
+      const nonNoneFilters = relevantFilters.filter(f => f.selectedMentor !== "None"); //filters where "None" is not an option
+      const noneFilters = relevantFilters.filter(f => f.selectedMentor === "None");
+      //calculate the new minMentorPerShift and maxMentorPerShift based on the filters
+      const newMaxMentorPerShift = maxMentorPerShift === noneFilters.length ? maxMentorPerShift : maxMentorPerShift - noneFilters.length;
+
+      let newMinMentorPerShift;
+      if(relevantFilters.length === 0) {
+        newMinMentorPerShift = minMentorPerShift;
+      }
+      else if(noneFilters.length === maxMentorPerShift) {
+        newMinMentorPerShift = maxMentorPerShift;
+      }
+      else if(relevantFilters.length === noneFilters.length) {
+        newMinMentorPerShift = minMentorPerShift;
+      }
+      else {
+        newMinMentorPerShift = nonNoneFilters.length;
+      }
+
+      console.log(newMinMentorPerShift, "newMinMentorPerShift")
+
+      
+      shiftPossibilities[times[i]] = getTotalCombination(day, i, nonNoneFilters, newMinMentorPerShift, newMaxMentorPerShift);
     }
 
     function generateDayPossibility(timeIndex: number, currentDaySchedule: Day) {
@@ -568,6 +591,7 @@ const GenerateSchedule = () => {
 
     return notNoneArr.concat(noneArr);
   }
+
 
   /**
    * Get all of the possible combinations of mentors who can work a specific day and time
