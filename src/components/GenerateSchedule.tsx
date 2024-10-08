@@ -81,7 +81,7 @@ const GenerateSchedule = () => {
       <input type="checkbox" checked={allowNoneSchedules} onChange={(e) => setAllowNoneSchedules(e.target.checked)} />
       <p>Allow schedules where no one is schedules for a shift</p>
       <h4>Mentors per shift</h4>
-      <p>The min/max amount of mentors per shift</p>
+      <p>The min/max amount of mentors per shift (range is 1-3 inclusively)</p>
       <p>Min</p>
       <input type="text" value={minMentors} onChange={(e) => setMinMentors(e.target.value)} />
       <p>Max</p>
@@ -164,14 +164,15 @@ const GenerateSchedule = () => {
     }
 
     const minMentorsNumber = parseInt(minMentors);
-    if (Number.isNaN(minMentorsNumber) || minMentorsNumber < 1) {
-      setWarningText('"Min Mentors per shift" needs to be a number greater than 0');
+    console.log(minMentorsNumber);
+    if (Number.isNaN(minMentorsNumber) || minMentorsNumber < 1 || minMentorsNumber > 3) {
+      setWarningText('"Min Mentors per shift" needs to be a number greater than 0 and less than 4');
       return;
     }
 
     const maxMentorsNumber = parseInt(maxMentors);
-    if (Number.isNaN(maxMentorsNumber) || maxMentorsNumber < 1) {
-      setWarningText('"Max Mentors per shift" needs to be a number greater than 0');
+    if (Number.isNaN(maxMentorsNumber) || maxMentorsNumber < 1 || maxMentorsNumber > 3) {
+      setWarningText('"Max Mentors per shift" needs to be a number greater than 0 and less than 4');
       return;
     }
 
@@ -188,17 +189,38 @@ const GenerateSchedule = () => {
     setSchedulesFound(0);
     await new Promise((r) => setTimeout(r, pauseTime));
 
-    //get new filters
-    const filters: FilterInterface[] = [];
-
+    //get the filters
+    let filters: FilterInterface[] = [];
+    let filtersError = false;
     for (const selectedDay of days) {
+      if(filtersError) {
+        break;
+      }
       for (const selectedTime of times) {
-        const selectedMentor = (document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement).value;
-        if (selectedMentor !== "Any") {
-          filters.push({ selectedMentor, selectedDay, selectedTime });
+        const shiftFilters = [] as FilterInterface[];
+        const filterElements = Array.from(document.querySelectorAll(`.${selectedDay}-${selectedTime}`)) as unknown as HTMLInputElement[];
+        const selectedMentors = filterElements.map(select => select.value);
+        for(const selectedMentor of selectedMentors)
+        if (selectedMentor !== "Any" && shiftFilters.every(filter => filter.selectedMentor !== selectedMentor)) {
+          shiftFilters.push({ selectedMentor, selectedDay, selectedTime });
         }
+        //if the number of shiftFilters is greater than "minMentorsNumber", set a warning
+        if(shiftFilters.length > minMentorsNumber) {
+          setWarningText(`The amount of filtered mentors on ${selectedDay} at ${selectedTime} (${shiftFilters.length}) is greater than "Mentors per shift" (${minMentorsNumber})`)
+          filtersError = true;
+          break;
+        }
+
+        filters = filters.concat(shiftFilters);
       }
     }
+
+    if(filtersError) {
+      setGeneratingSchedules(false);
+      return;
+    }
+
+    console.log(filters);
 
     //get all of the possible shift (one mentor) for each block
     const allDayPossibilities: { [key: string]: Day[] } = {};
@@ -379,28 +401,31 @@ const GenerateSchedule = () => {
 
   /**
    * Get a dropdown element of all the mentors working a specific day and time
-   * @param {string} id the id of the element that tells the day/time of the shift. Ex: Monday-10
+   * @param {string} className the class of the element that tells the day/time of the shift. Ex: Monday-10
    * @return {JSX.Element} a select dropdown element where all the options are the relevant mentor names
    */
-  function getDropDown(id: string): JSX.Element {
+  function getDropDown(className: string): JSX.Element {
     if (isLoading || savedMentors === undefined) {
       <select></select>;
     }
-    const day = id.split("-")[0];
-    const time = id.split("-")[1];
+    const day = className.split("-")[0];
+    const time = className.split("-")[1];
     const timeIndex = times.indexOf(time);
     const validMentors = savedMentors.filter((mentor) => mentor.availability[day as keyof MentorInterface["availability"]][timeIndex]);
     const names = validMentors.map((mentor) => mentor.name);
     names.splice(0, 0, "Any");
-    return (
-      <select id={id}>
+    const selectOption = (
+      <select className={className}>
         {names.map((name) => (
           <option key={name} value={name}>
             {name}
           </option>
         ))}
       </select>
-    );
+    )
+
+    const a = <div>{selectOption}{selectOption}{selectOption}</div>
+    return a;
   }
 
   /**
@@ -458,12 +483,11 @@ const GenerateSchedule = () => {
       maxMentorCount: number;
       nameList: string[];
     }
-
     const allDayPossibilities: DayInfo[] = []; //all possibilities of the parameter "day"
     const shiftPossibilities: { [key: string]: string[][] } = {}; //all possibilities of a specific time of the "day" parameter
 
     for (let i = 0; i < times.length; i++) {
-      const filterByTime = filters.filter((f) => f.selectedTime === times[i]); //all of the relevant filters of the day and time
+      const filterByTime = filters.filter((f) => f.selectedDay === day && f.selectedTime === times[i]); //all of the relevant filters of the day and time
       shiftPossibilities[times[i]] = getTotalCombination(day, i, filterByTime, minMentorPerShift, maxMentorPerShift);
     }
 
