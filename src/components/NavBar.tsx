@@ -2,7 +2,7 @@
 import Link from 'next/link';
 const NavBar = () => {
     return (
-        <div>
+        <div className='flex justify-center gap-10'>
             <Link href={"/"}>Home</Link><br/>
             <Link href={"/mentor/create"}>Create/Edit Mentor</Link><br/>
             <Link href={"/mentor"}>View Mentors</Link><br />
