@@ -16,7 +16,10 @@ const Mentor = (props: Props) => {
     }
     return (
         <div>
-            <p>{`${props.mentor.name}'s Availability`}</p> <button onClick={() => deleteMentor()}>Delete</button>
+            <div style={{display: "flex", margin: "0px", gap: "10px", justifyContent: "center"}}>
+                <p style={{ margin: "0px"}}>{`${props.mentor.name}'s Availability`}</p> 
+                <button onClick={() => deleteMentor()}>Delete</button>
+            </div>
             <table>
                 <tr>
                     <td></td>

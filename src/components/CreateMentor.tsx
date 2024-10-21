@@ -3,6 +3,7 @@ import { Availability } from "@/app/interface/Availability";
 import { MentorInterface } from "@/app/interface/Mentor";
 import { useState, useEffect } from "react";
 import Block from "@/components/Block";
+import styles from '../css/utils.module.css'
 const CreateMentor = () => {
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
@@ -50,33 +51,36 @@ const CreateMentor = () => {
     return <div>Loading...</div>;
   }
   return (
-    <div>
-      <label>Mentor Name (first and last): </label>
-      <input type="text" onChange={mentorNameChange}></input>
-      <div>
-        <table>
-          <thead>
-            <tr>
-              <th></th>
-              {days.map(day => <th>{day}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {times.map((time, ix) => (
-              <tr key={time}>
-                <td>{time}</td>
-                {days.map(day => <td><Block day={day as keyof Availability} index={ix} availability={availability} setAvailability={setAvailability} /></td>)}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div style={{display: "flex", flexDirection: "column", justifyContent: "center", marginLeft: "30%", marginRight: "30%"}}>
+      <div style={{marginTop: "10px", gap: "10px", display: "flex", justifyContent: "center"}}>
+        <label>Mentor Name (first and last): </label>
+        <input type="text" onChange={mentorNameChange}></input>
       </div>
-      <button onClick={() => createMentor()}>Submit</button>
-      <button onClick={() => populateMentors()}>Populate Mentors (Debug)</button>
+
+      <div className={styles.gridContainer}>
+        <p></p>
+            {days.map(d => <b>{d}</b>)}
+            {times.map(time => makeElementArr(time))}
+      </div>
+      
+      <div className={styles.navbar}>
       <button onClick={() => setAvailability(blankAvailability)}>Reset Schedule</button>
+      <button onClick={() => populateMentors()}>Populate Mentors (Debug)</button>
+      <button onClick={() => createMentor()}>Submit</button>
+
+      </div>
+      
       <p style={{ color: "red" }}>{warningText}</p>
+      
     </div>
   );
+
+  function makeElementArr(time: string) {
+    const timeIndex = times.indexOf(time);
+    const buttons = days.map(day => <Block day={day as keyof Availability} index={timeIndex} availability={availability} setAvailability={setAvailability} />)
+    const arr = [<p>{time}</p>].concat(buttons);
+    return arr;
+    }
 
   function createMentor() {
     //if name is blank, invalid
