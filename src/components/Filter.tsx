@@ -1,6 +1,7 @@
 "use client";
 import { MentorInterface } from "@/app/interface/Mentor";
 import { useState, useEffect } from "react";
+import { AbstractFilter } from "./AbstractFilter";
 
 interface Props {
   day: string;
@@ -8,6 +9,8 @@ interface Props {
   globalMinShifts: number;
   globalMaxShift: number;
   mentors: MentorInterface[];
+  abstractFilters: AbstractFilter[]; 
+  setAbstractFilters: any //todo replace this with the function
 }
 
 const times = ["10", "11", "12", "1", "2", "3", "4", "5"]
@@ -35,8 +38,18 @@ const Filter = (props: Props) => {
             ))}
         </select>
       ))}
+      <button onClick={() => deleteFilter()}>Delete</button>
     </div>
   );
+
+  function deleteFilter() {
+    const newAbstractFilter = props.abstractFilters.filter(f => !(f.day == props.day && f.time == props.time))
+    console.log("old: ", props.abstractFilters.length)
+    console.log("new: ", newAbstractFilter.length)
+
+    props.setAbstractFilters(newAbstractFilter);
+    console.log('delete')
+  }
 };
 
 export default Filter;

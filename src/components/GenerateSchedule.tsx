@@ -2,19 +2,16 @@
 import { Schedule } from "@/app/interface/Schedule";
 import { MentorInterface } from "@/app/interface/Mentor";
 import { Day } from "@/app/interface/Day";
-import { useState, useEffect } from "react";
-import IndividualSchedule from "./IndividualSchedule";
+import { useState, useEffect, SetStateAction } from "react";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
-import Filter from "./Filter";
 import { AbstractFilter } from "./AbstractFilter";
 import FilterContainer from "./FilterContainer";
 const GenerateSchedule = () => {
 
 
   //todo give this interface a better name
-  interface DayAbstractFilters 
-    {'Monday': boolean, 'Tuesday': boolean, 'Wednesday': boolean, 'Thursday': boolean, 'Friday': boolean}
+
   
 
   const pauseTime = 1; //the amount of milliseconds that will pass when "setTimeout" is called. Is there just to allow generating info to update in real time
@@ -133,9 +130,9 @@ const GenerateSchedule = () => {
 
 
       <h2>Filters</h2>
-      
-      {days.map(day => getDayFilters(day))}
-      <button onClick={() => {setShowFilterPopUp(true)}}>Add Filter</button>
+      {/* update hiding / showing filters */}
+      {days.map(day => <FilterContainer abstractFilters={abstractFilters.filter(f => f.day == day).sort((f1, f2) => { return times.indexOf(f1.time) - times.indexOf(f2.time); })} mentors={savedMentors} day={day} globalMinShifts={globalMinMentorCount} globalMaxShift={globalMaxMentorCount} setAbstractFilters={setAbstractFilters} showAbstractFilters={showAbstractFilters} setShowAbstractFilters={setShowAbstractFilters} />)}
+      <button onClick={() => {setShowFilterPopUp(true); setSelectedFilterTime(times[0]); setSelectedFilterDay(days[0])  }}>Add Filter</button>
       <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
         Generate schedules
       </button>
@@ -150,7 +147,7 @@ const GenerateSchedule = () => {
       {/* Pop up for filters */
       showFilterPopUp && 
       (<div style={{position: "fixed", zIndex: "1", left: "0", top: "0", width: "100%", height: "100%", overflow: "auto", backgroundColor: "rgba(0, 0, 0, 0.4)", display: showFilterPopUp ? "show" : "none"}}>
-        <div style={{backgroundColor: "white", margin: "10% auto", padding: "20px", border: "1px solid #888888", width: "45%",fontWeight: "bolder", display: "flex", flexDirection: "column", alignItems: "center"}}>
+        <div style={{backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center"}}>
           <h2>Select which day and time the filter should be for</h2>
           <div style={{display:"flex", gap: "10px"}}>
             <select onChange={(e) => setSelectedFilterDay(e.target.value)}>
@@ -168,18 +165,19 @@ const GenerateSchedule = () => {
                   </option>
               ))}
             </select>
+          </div>
+          {foundAbstractFilter() && (<p style={{color:"red"}}>A filter of that day and time already exists</p>)}
+          <div style={{display:"flex", gap: "10px", marginTop: "10px"}}>
             <button onClick={() => setShowFilterPopUp(false)}>Close</button>
-            <button onClick={() => addFilter()}>Add Filter</button>
+            <button onClick={() => addFilter()} disabled={foundAbstractFilter()}>Add Filter</button>
           </div>
         </div>
       </div>)}
     </div>
   );
 
-  function getDayFilters(day: string) {
-    const relevantFilters = abstractFilters.filter(f => f.day == day);
-    return <div>{showAbstractFilters[day as keyof DayAbstractFilters] && relevantFilters.map(f => <FilterContainer abstractFilters={abstractFilters} mentors={savedMentors} day={day} globalMinShifts={globalMinMentorCount} globalMaxShift={globalMaxMentorCount} time={f.time} />)}</div> 
-    
+  function foundAbstractFilter() {
+    return abstractFilters.find(f => f.day == selectedFilterDay && f.time == selectedFilterTime) != undefined
   }
 
   function addFilter() {
