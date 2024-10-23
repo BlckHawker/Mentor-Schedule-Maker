@@ -6,7 +6,17 @@ import { useState, useEffect } from "react";
 import IndividualSchedule from "./IndividualSchedule";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
+import Filter from "./Filter";
+import { AbstractFilter } from "./AbstractFilter";
+import FilterContainer from "./FilterContainer";
 const GenerateSchedule = () => {
+
+
+  //todo give this interface a better name
+  interface DayAbstractFilters 
+    {'Monday': boolean, 'Tuesday': boolean, 'Wednesday': boolean, 'Thursday': boolean, 'Friday': boolean}
+  
+
   const pauseTime = 1; //the amount of milliseconds that will pass when "setTimeout" is called. Is there just to allow generating info to update in real time
   const maxSchedulesAllowed = 1000000; //max # of generated schedules
   const maxDayPossibilities = 1000000; //max # of day possibilities generated
@@ -33,7 +43,13 @@ const GenerateSchedule = () => {
   const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]); //the mentor names that are loaded from local storage
   const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>(); //the generated schedules
   const [warningText, setWarningText] = useState(""); //text that will appear that gives the user information related to their input and the generation
-  const [filtersMaxMentor, setFiltersMaxMentor] = useState(parseInt(maxMentors)); //the number of filter dropdowns that will appear. Based on the max # of mentors set
+  const [globalMaxMentorCount, setGlobalMaxMentorCount] = useState(parseInt(maxMentors)); //the number of filter dropdowns that will appear. Based on the max # of mentors set
+  const [globalMinMentorCount, setGlobalMinMentorCount] = useState(parseInt(minMentors));
+  const [showFilterPopUp, setShowFilterPopUp] = useState(false);
+  const [abstractFilters, setAbstractFilters] = useState<AbstractFilter[]>([])
+  const [selectedFilterDay, setSelectedFilterDay] = useState<string>(days[0])
+  const [selectedFilterTime, setSelectedFilterTime] = useState<string>(times[0])
+  const [showAbstractFilters, setShowAbstractFilters] = useState<DayAbstractFilters>({'Monday': true, 'Tuesday': true, 'Wednesday': true, 'Thursday': true, 'Friday': true})
 
   //loading data from local storage
   useEffect(() => {
@@ -72,11 +88,16 @@ const GenerateSchedule = () => {
 
   //update the number of dropdowns that appear based on max # of mentors
   useEffect(() => {
-    const num = parseInt(maxMentors);
+    let num = parseInt(maxMentors);
     if(Number.isInteger(num) && num >= 1 && num <= 3) {
-      setFiltersMaxMentor(num);
+      setGlobalMaxMentorCount(num);
     }
-  }, [maxMentors])
+
+    num = parseInt(minMentors);
+    if(Number.isInteger(num) && num >= 1 && num <= 3) {
+      setGlobalMinMentorCount(num);
+    }
+  }, [maxMentors, minMentors])
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -110,27 +131,11 @@ const GenerateSchedule = () => {
       <input type="text" value={maxSchedulesString} onChange={(e) => setMaxSchedulesString(e.target.value)} disabled={!maxSchedulesBoolean}></input>
       <br />
 
+
       <h2>Filters</h2>
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            {days.map((day) => (
-              <th key={day}>{day}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {times.map((time) => (
-            <tr key={time}>
-              <td>{time}</td>
-              {days.map((day) => (
-                <td key={`${day}-${time}`}>{getDropDown(`${day}-${time}`)}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      
+      {days.map(day => getDayFilters(day))}
+      <button onClick={() => {setShowFilterPopUp(true)}}>Add Filter</button>
       <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
         Generate schedules
       </button>
@@ -141,14 +146,57 @@ const GenerateSchedule = () => {
         </div>
       )}
       <p>{warningText}</p>
+
+      {/* Pop up for filters */
+      showFilterPopUp && 
+      (<div style={{position: "fixed", zIndex: "1", left: "0", top: "0", width: "100%", height: "100%", overflow: "auto", backgroundColor: "rgba(0, 0, 0, 0.4)", display: showFilterPopUp ? "show" : "none"}}>
+        <div style={{backgroundColor: "white", margin: "10% auto", padding: "20px", border: "1px solid #888888", width: "45%",fontWeight: "bolder", display: "flex", flexDirection: "column", alignItems: "center"}}>
+          <h2>Select which day and time the filter should be for</h2>
+          <div style={{display:"flex", gap: "10px"}}>
+            <select onChange={(e) => setSelectedFilterDay(e.target.value)}>
+              <b>Selected Day</b>
+              {days.map(day => (
+                  <option key={day} value={day}>
+                      {day}
+                  </option>
+              ))}
+            </select>
+            <select onChange={(e) => setSelectedFilterTime(e.target.value)}>
+              {times.map(time => (
+                  <option key={time} value={time}>
+                      {time}
+                  </option>
+              ))}
+            </select>
+            <button onClick={() => setShowFilterPopUp(false)}>Close</button>
+            <button onClick={() => addFilter()}>Add Filter</button>
+          </div>
+        </div>
+      </div>)}
     </div>
   );
+
+  function getDayFilters(day: string) {
+    const relevantFilters = abstractFilters.filter(f => f.day == day);
+    return <div>{showAbstractFilters[day as keyof DayAbstractFilters] && relevantFilters.map(f => <FilterContainer abstractFilters={abstractFilters} mentors={savedMentors} day={day} globalMinShifts={globalMinMentorCount} globalMaxShift={globalMaxMentorCount} time={f.time} />)}</div> 
+    
+  }
+
+  function addFilter() {
+
+    setShowFilterPopUp(false);
+    const newArr = [...abstractFilters, { day: selectedFilterDay, time: selectedFilterTime }];
+    setAbstractFilters(newArr);
+  }
 
   /**
    * generates a collection of schedules based on user
    * parameters and mentors saved in local storage
    */
   async function generateSchedules() {
+
+    //todo: have a check for each filter to verify the min mentor count is less than the max mentor count
+
     setWarningText("");
     if (savedMentors.length === 0) {
       setWarningText("No mentors saved in local storage");
@@ -462,7 +510,7 @@ const GenerateSchedule = () => {
       </select>
     )
     //todo: change this to be dynamic
-    switch(filtersMaxMentor)
+    switch(globalMaxMentorCount)
     {
       case 1:
       return <div>{selectOption}</div>
