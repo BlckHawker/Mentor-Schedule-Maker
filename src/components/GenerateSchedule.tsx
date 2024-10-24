@@ -7,16 +7,17 @@ import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
 import { AbstractFilter } from "./AbstractFilter";
 import FilterContainer from "./FilterContainer";
-import { Tooltip } from 'react-tooltip'
 import ToolTip from "./ToolTip";
-
 
 const GenerateSchedule = () => {
   const pauseTime = 1; //the amount of milliseconds that will pass when "setTimeout" is called. Is there just to allow generating info to update in real time
   const maxSchedulesAllowed = 1000000; //max # of generated schedules
   const maxDayPossibilities = 1000000; //max # of day possibilities generated
 
+  //todo make it so the 'nobody works this shift' checkbox is disabled when "Allow None Schedules" is false
   //todo change the notifSound
+  //todo make the style that is for the global options dymanic to reduce repeated code.
+  //todo make min/max mentors per shift for filters a dropdown between 1-3 inclusively
   const notifSound = "https://s3.amazonaws.com/freecodecamp/drums/Heater-1.mp3"; //the sound that will play when generation finishes
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]; //the days a mentor is allowed to work
   const times = ["10", "11", "12", "1", "2", "3", "4", "5"]; //the times a mentor is allowed to work
@@ -45,6 +46,8 @@ const GenerateSchedule = () => {
   const [selectedFilterDay, setSelectedFilterDay] = useState<string>(days[0]);
   const [selectedFilterTime, setSelectedFilterTime] = useState<string>(times[0]);
   const [showAbstractFilters, setShowAbstractFilters] = useState<DayAbstractFilters>({ Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true });
+  const [showGlobalOptions, setShowGlobalOptions] = useState(true);
+  const [showFilters, setShowFilters] = useState(true);
 
   //loading data from local storage
   useEffect(() => {
@@ -100,123 +103,141 @@ const GenerateSchedule = () => {
   return (
     <div>
       <NavBar />
-      <div style={{ marginTop:"10px", display: "flex", flexDirection: "column" }}>
-        <div style={{display: "flex", fontSize: "23px", justifyContent: "center", gap: "10px"}}>
+      <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", justifyContent: "center", gap:"10px" }}>
+        <div style={{ display: "flex", fontSize: "23px", justifyContent: "center", gap: "10px" }}>
           <b>Global Options</b>
-          <button>Show</button>
+          <button onClick={() => setShowGlobalOptions((b) => !b)}>{showGlobalOptions ? "Hide" : "Show"}</button>
         </div>
-        <div style={{display: "flex", justifyContent: "center", gap: "10px"}}>
-          <input type="checkbox" checked={forceAllMentorsBoolean} onChange={(e) => setForceAllMentorsBoolean(e.target.checked)} />
-          <ToolTip mainText={"Force All Mentors"} toolText={"Only gives schedules where all mentors have at least one shift"} idName={"force-all-mentors"}/>
-        </div>
-        
-        <h4>Allow None Schedules</h4>
-        <input type="checkbox" checked={allowNoneSchedules} onChange={(e) => setAllowNoneSchedules(e.target.checked)} />
-        <p>Allow schedules where no one is schedules for a shift</p>
-        <h4>Mentors per shift</h4>
-        <p>The min/max amount of mentors per shift (range is 1-3 inclusively)</p>
-        <p>Min</p>
-        <input type="text" value={minMentors} onChange={(e) => setMinMentors(e.target.value)} />
-        <p>Max</p>
-        <input type="text" value={maxMentors} onChange={(e) => setMaxMentors(e.target.value)} />
-        <h4>Max Shifts</h4>
-        <p>The max amount of shifts each mentor is allowed to work in a week</p>
-        <input type="text" value={maxShiftsString} onChange={(e) => setMaxShiftsString(e.target.value)}></input>
-        <h4>Max Time</h4>
-        <input type="checkbox" checked={maxTimeBoolean} onChange={(e) => setMaxTimeBoolean(e.target.checked)} />
-        <p>The time generation will take (in minutes)</p>
-        <input type="text" value={maxTimeString} onChange={(e) => setMaxTimeString(e.target.value)} disabled={!maxTimeBoolean}></input>
-        <br />
-        <h4>Max Schedules</h4>
-        <input type="checkbox" checked={maxSchedulesBoolean} onChange={(e) => setMaxSchedulesBoolean(e.target.checked)} />
-        <p>The max amount of schedules that will be found until generation stops</p>
-        <input type="text" value={maxSchedulesString} onChange={(e) => setMaxSchedulesString(e.target.value)} disabled={!maxSchedulesBoolean}></input>
-        <br />
-        <h2>Filters</h2>
-        <button
-          onClick={() => {
-            setShowFilterPopUp(true);
-            setSelectedFilterTime(times[0]);
-            setSelectedFilterDay(days[0]);
-          }}
-        >
-          Add Filter
-        </button>
-
-        {days.map((day) => (
-          <FilterContainer
-            abstractFilters={abstractFilters
-              .filter((f) => f.day == day)
-              .sort((f1, f2) => {
-                return times.indexOf(f1.time) - times.indexOf(f2.time);
-              })}
-            mentors={savedMentors}
-            day={day}
-            globalMinShifts={globalMinMentorCount}
-            globalMaxShift={globalMaxMentorCount}
-            setAbstractFilters={setAbstractFilters}
-            showAbstractFilters={showAbstractFilters}
-            setShowAbstractFilters={setShowAbstractFilters}
-          />
-        ))}
-        <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
-          Generate schedules
-        </button>
-        {generatingSchedules && (
+        {showGlobalOptions && (
           <div>
-            <p>Generating Schedules...{formatTime(elapsedTime)}</p>
-            <p>Found {numberWithCommas(schedulesFound)} schedules</p>
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <input type="checkbox" checked={forceAllMentorsBoolean} onChange={(e) => setForceAllMentorsBoolean(e.target.checked)} />
+              <ToolTip mainText={"Force All Mentors"} toolText={"Only gives schedules where all mentors have at least one shift"} idName={"force-all-mentors"} />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <input type="checkbox" checked={allowNoneSchedules} onChange={(e) => setAllowNoneSchedules(e.target.checked)} />
+              <ToolTip mainText={"Allow None Schedules"} toolText={"Allow schedules where no one is schedules for a shift"} idName={"allow-none-schedules"} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <ToolTip mainText={"Minimum mentors per shift"} toolText={"The minimum amount of mentors per shift (range is 1-3 inclusively)"} idName={"min-mentors-per-shift"} />
+              <input type="text" value={minMentors} onChange={(e) => setMinMentors(e.target.value)} />
+              <ToolTip mainText={"Maximum mentors per shift"} toolText={"The maximum amount of mentors per shift (range is 1-3 inclusively)"} idName={"max-mentors-per-shift"} />
+              <input type="text" value={maxMentors} onChange={(e) => setMaxMentors(e.target.value)} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <ToolTip mainText={"Max Shifts"} toolText={"The max amount of shifts each mentor is allowed to work in a week"} idName={"max-mentors"} />
+              <input type="text" value={maxShiftsString} onChange={(e) => setMaxShiftsString(e.target.value)} />
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <input type="checkbox" checked={maxTimeBoolean} onChange={(e) => setMaxTimeBoolean(e.target.checked)} />
+              <ToolTip mainText={"Max Time"} toolText={"(optional) The time generation will take (in minutes)"} idName={"max-time"} />
+              <input type="text" value={maxTimeString} onChange={(e) => setMaxTimeString(e.target.value)} disabled={!maxTimeBoolean}></input>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
+              <input type="checkbox" checked={maxSchedulesBoolean} onChange={(e) => setMaxSchedulesBoolean(e.target.checked)} />
+
+              <ToolTip
+                mainText={"Max Schedules"}
+                toolText={`(optional) The max amount of schedules that will be found until generation stops (max being ${numberWithCommas(maxSchedulesAllowed)})`}
+                idName={"max-schedules"}
+              />
+              <input type="text" value={maxSchedulesString} onChange={(e) => setMaxSchedulesString(e.target.value)} disabled={!maxSchedulesBoolean}></input>
+            </div>
           </div>
         )}
-        <p>{warningText}</p>
 
-        {
-          /* Pop up for filters */
-          showFilterPopUp && (
-            <div
-              style={{
-                position: "fixed",
-                zIndex: "1",
-                left: "0",
-                top: "0",
-                width: "100%",
-                height: "100%",
-                overflow: "auto",
-                backgroundColor: "rgba(0, 0, 0, 0.4)",
-                display: showFilterPopUp ? "show" : "none",
+        <div style={{ display: "flex", fontSize: "23px", justifyContent: "center", gap: "10px" }}>
+          <b>Filters</b>
+          <button onClick={() => setShowFilters((b) => !b)}>{showFilters ? "Hide" : "Show"}</button>
+        </div>
+
+        {showFilters && (
+          <div style={{display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px"}}>
+            <button
+              onClick={() => {
+                setShowFilterPopUp(true);
+                setSelectedFilterTime(times[0]);
+                setSelectedFilterDay(days[0]);
               }}
             >
-              <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <h2>Select which day and time the filter should be for</h2>
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <select onChange={(e) => setSelectedFilterDay(e.target.value)}>
-                    <b>Selected Day</b>
-                    {days.map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                  <select onChange={(e) => setSelectedFilterTime(e.target.value)}>
-                    {times.map((time) => (
-                      <option key={time} value={time}>
-                        {time}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                {foundAbstractFilter() && <p style={{ color: "red" }}>A filter of that day and time already exists</p>}
-                <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                  <button onClick={() => setShowFilterPopUp(false)}>Close</button>
-                  <button onClick={() => addFilter()} disabled={foundAbstractFilter()}>
-                    Add Filter
-                  </button>
-                </div>
+              Add Filter
+            </button>
+            {days.map((day) => (
+              <FilterContainer
+                abstractFilters={abstractFilters
+                  .filter((f) => f.day == day)
+                  .sort((f1, f2) => {
+                    return times.indexOf(f1.time) - times.indexOf(f2.time);
+                  })}
+                mentors={savedMentors}
+                day={day}
+                globalMinShifts={globalMinMentorCount}
+                globalMaxShift={globalMaxMentorCount}
+                setAbstractFilters={setAbstractFilters}
+                showAbstractFilters={showAbstractFilters}
+                setShowAbstractFilters={setShowAbstractFilters}
+              />
+            ))}
+            <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
+              Generate schedules
+            </button>
+            {generatingSchedules && (
+              <div>
+                <p>Generating Schedules...{formatTime(elapsedTime)}</p>
+                <p>Found {numberWithCommas(schedulesFound)} schedules</p>
               </div>
-            </div>
-          )
-        }
+            )}
+            {
+              /* Pop up for filters */
+              showFilterPopUp && (
+                <div
+                  style={{
+                    position: "fixed",
+                    zIndex: "1",
+                    left: "0",
+                    top: "0",
+                    width: "100%",
+                    height: "100%",
+                    overflow: "auto",
+                    backgroundColor: "rgba(0, 0, 0, 0.4)",
+                    display: showFilterPopUp ? "show" : "none",
+                  }}
+                >
+                  <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <h2>Select which day and time the filter should be for</h2>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <select onChange={(e) => setSelectedFilterDay(e.target.value)}>
+                        <b>Selected Day</b>
+                        {days.map((day) => (
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
+                      <select onChange={(e) => setSelectedFilterTime(e.target.value)}>
+                        {times.map((time) => (
+                          <option key={time} value={time}>
+                            {time}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {foundAbstractFilter() && <p style={{ color: "red" }}>A filter of that day and time already exists</p>}
+                    <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                      <button onClick={() => setShowFilterPopUp(false)}>Close</button>
+                      <button onClick={() => addFilter()} disabled={foundAbstractFilter()}>
+                        Add Filter
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+          </div>
+        )}
       </div>
+      <p>{warningText}</p>
     </div>
   );
 
