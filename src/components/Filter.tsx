@@ -14,8 +14,6 @@ interface Props {
 }
 
 const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
-
-
 const Filter = (props: Props) => {
   const [minShift, setMinShift] = useState<number>(props.globalMinShifts);
   const [maxShift, setMaxShift] = useState(props.globalMaxShift);
@@ -26,22 +24,19 @@ const Filter = (props: Props) => {
       <u>{props.time + (["10", "11"].includes(props.time) ? " am" : " pm")}</u>
       <div style={{display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", border: "dotted rgba(0, 0, 0, 0.5)", marginLeft: "200px", marginRight: "200px"} }>
         <div style={{marginTop: "10px"}}>
-          <input type="checkbox" checked={nobodyWorks} onChange={(e) => setNobodyWorks(e.target.checked)}></input>
+          <input id={`${props.day}-${props.time}-nobody-works`} type="checkbox" checked={nobodyWorks} onChange={(e) => setNobodyWorks(e.target.checked)}></input>
           <b>Nobody works this shift</b>
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
           <b>Min Shifts:</b>
-          {getMentorCountDropDown(`${props.day}-${props.time}-min-count`,setMinShift)}
+          {getMentorCountDropDown(`${props.day}-${props.time}-min-count`, minShift, setMinShift)}
           <b>Max Shifts:</b>
-          {getMentorCountDropDown(`${props.day}-${props.time}-max-count`, setMaxShift)}
+          {getMentorCountDropDown(`${props.day}-${props.time}-max-count`, maxShift, setMaxShift)}
         </div>
-
-        
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
           <b>Mentors</b>
           {getMentorDropDown()}
         </div>
-
         <button style={{marginBottom: "20px", width:"65px"}} onClick={() => deleteFilter()}>Delete</button>
       </div>
     </div>
@@ -64,9 +59,9 @@ const Filter = (props: Props) => {
     ))
   }
 
-  function getMentorCountDropDown(idName: string, onChangeMethod: React.Dispatch<React.SetStateAction<number>>) {
+  function getMentorCountDropDown(idName: string, state: number, onChangeMethod: React.Dispatch<React.SetStateAction<number>>) {
     
-      return <select id={idName} disabled={nobodyWorks} onChange={((e) => onChangeMethod(parseFloat(e.target.value)))}>
+      return <select id={idName} disabled={nobodyWorks} value={state} onChange={((e) => onChangeMethod(parseFloat(e.target.value)))}>
         {Array.from({ length: 3 }).map((_, ix) => (
           <option key={ix + 1} value={ix + 1}>{ix + 1}</option>
         ))}

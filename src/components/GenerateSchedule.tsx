@@ -33,15 +33,13 @@ const GenerateSchedule = () => {
   const [maxSchedulesBoolean, setMaxSchedulesBoolean] = useState(true); //If generation will stop after a certain amount of schedules has been generated
   const [maxSchedulesString, setMaxSchedulesString] = useState("30"); //The max amount of schedules that will be found until generation stops
   const [maxShiftsString, setMaxShiftsString] = useState("4"); //The max amount of shifts each mentor is allowed to work in a week
-  const [minMentors, setMinMentors] = useState("1"); //the minimum amount of mentors that can be scheduled for one shift
-  const [maxMentors, setMaxMentors] = useState("1"); //the maximum amount of mentors that can be scheduled for one shift
+  const [minMentors, setMinMentors] = useState(1); //the minimum amount of mentors that can be scheduled for one shift
+  const [maxMentors, setMaxMentors] = useState(1); //the maximum amount of mentors that can be scheduled for one shift
   const [isLoading, setIsLoading] = useState(false); //if the program is loading things from local storage
   const [savedMentors, setSavedMentors] = useState<MentorInterface[]>([]); //the mentors loaded from local storage
   const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]); //the mentor names that are loaded from local storage
   const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>(); //the generated schedules
   const [warningText, setWarningText] = useState(""); //text that will appear that gives the user information related to their input and the generation
-  const [globalMaxMentorCount, setGlobalMaxMentorCount] = useState(parseInt(maxMentors)); //the number of filter dropdowns that will appear. Based on the max # of mentors set
-  const [globalMinMentorCount, setGlobalMinMentorCount] = useState(parseInt(minMentors));
   const [showFilterPopUp, setShowFilterPopUp] = useState(false);
   const [abstractFilters, setAbstractFilters] = useState<AbstractFilter[]>([]);
   const [selectedFilterDay, setSelectedFilterDay] = useState<string>(days[0]);
@@ -85,19 +83,6 @@ const GenerateSchedule = () => {
     }
   }, [generatingSchedules]);
 
-  //update the number of dropdowns that appear based on max # of mentors
-  useEffect(() => {
-    let num = parseInt(maxMentors);
-    if (Number.isInteger(num) && num >= 1 && num <= 3) {
-      setGlobalMaxMentorCount(num);
-    }
-
-    num = parseInt(minMentors);
-    if (Number.isInteger(num) && num >= 1 && num <= 3) {
-      setGlobalMinMentorCount(num);
-    }
-  }, [maxMentors, minMentors]);
-
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -121,10 +106,10 @@ const GenerateSchedule = () => {
               <ToolTip mainText={"Allow None Schedules"} toolText={"Allow schedules where no one is schedules for a shift"} idName={"allow-none-schedules"} />
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-              <ToolTip mainText={"Minimum mentors per shift"} toolText={"The minimum amount of mentors per shift (range is 1-3 inclusively)"} idName={"min-mentors-per-shift"} />
-              <input type="text" value={minMentors} onChange={(e) => setMinMentors(e.target.value)} />
-              <ToolTip mainText={"Maximum mentors per shift"} toolText={"The maximum amount of mentors per shift (range is 1-3 inclusively)"} idName={"max-mentors-per-shift"} />
-              <input type="text" value={maxMentors} onChange={(e) => setMaxMentors(e.target.value)} />
+              <ToolTip mainText={"Minimum mentors per shift"} toolText={"The minimum amount of mentors per shift"} idName={"min-mentors-per-shift"} />
+              {getMentorCountDropDown(setMinMentors)}
+              <ToolTip mainText={"Maximum mentors per shift"} toolText={"The maximum amount of mentors per shift"} idName={"max-mentors-per-shift"} />
+              {getMentorCountDropDown(setMaxMentors)}
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
               <ToolTip mainText={"Max Shifts"} toolText={"The max amount of shifts each mentor is allowed to work in a week"} idName={"max-mentors"} />
@@ -173,16 +158,13 @@ const GenerateSchedule = () => {
                   })}
                 mentors={savedMentors}
                 day={day}
-                globalMinShifts={globalMinMentorCount}
-                globalMaxShift={globalMaxMentorCount}
+                globalMinShifts={minMentors}
+                globalMaxShift={maxMentors}
                 setAbstractFilters={setAbstractFilters}
                 showAbstractFilters={showAbstractFilters}
                 setShowAbstractFilters={setShowAbstractFilters}
               />
             ))}
-            <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
-              Generate schedules
-            </button>
             {generatingSchedules && (
               <div>
                 <p>Generating Schedules...{formatTime(elapsedTime)}</p>
@@ -237,7 +219,11 @@ const GenerateSchedule = () => {
             }
           </div>
         )}
+        <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
+          Generate schedules
+        </button>
       </div>
+
       <p>{warningText}</p>
     </div>
   );
@@ -283,20 +269,8 @@ const GenerateSchedule = () => {
       return;
     }
 
-    const minMentorsNumber = parseInt(minMentors);
-    if (Number.isNaN(minMentorsNumber) || minMentorsNumber < 1 || minMentorsNumber > 3) {
-      setWarningText('"Min Mentors per shift" needs to be a number greater than 0 and less than 4');
-      return;
-    }
-
-    const maxMentorsNumber = parseInt(maxMentors);
-    if (Number.isNaN(maxMentorsNumber) || maxMentorsNumber < 1 || maxMentorsNumber > 3) {
-      setWarningText('"Max Mentors per shift" needs to be a number greater than 0 and less than 4');
-      return;
-    }
-
-    if (minMentorsNumber > maxMentorsNumber) {
-      setWarningText('"Min Mentors per shift" needs to be a number less than "Max Mentors per shift"');
+    if (minMentors > maxMentors) {
+      setWarningText('"Minimum mentors per shift" needs to be a number less than "Maximum mentors per shift"');
       return;
     }
 
@@ -305,32 +279,41 @@ const GenerateSchedule = () => {
     let filters: FilterInterface[] = [];
 
     //todo change this nested for loop to loop through abstractFilters
-    for (const day of days) {
-      for (const time of times) {
-        const warningPrefix = `The filter for ${day} at ${time} is invalid:`;
-        //todo verify filter of this day and time exists
-        if (abstractFilters.find((f) => f.day == day && f.time == time) == undefined) {
-          continue;
-        }
 
-        //get min amount of mentors
-        const minCount = (document.querySelector(`#${day}-${time}-min-count`) as HTMLSelectElement).value;
+    for (const abstractFilter of abstractFilters) {
+      const day = abstractFilter.day;
+      const time = abstractFilter.time;
+      const warningPrefix = `The filter for ${day} at ${time} is invalid:`;
 
-        //get max amount of mentors
-        const maxCount = (document.querySelector(`#${day}-${time}-max-count`) as HTMLSelectElement).value;
+      //get "nobody works this shift" boolean
+      const noMentors = (document.querySelector(`#${day}-${time}-nobody-works`) as HTMLInputElement).checked;
 
-        //get the filtered mentors
-        const filteredNames = Array.from({ length: 3 })
-          .map((_, ix) => document.querySelector(`#${day}-${time}-${ix}`))
-          .filter((element): element is HTMLSelectElement => element !== null)
-          .map((ele) => ele.value)
-          .filter((name): name is string => name !== "Any");
+      //get min amount of mentors
+      const minCount = (document.querySelector(`#${day}-${time}-min-count`) as HTMLSelectElement).value;
 
-        //todo get "nobody works this shift" boolean
+      //get max amount of mentors
+      const maxCount = (document.querySelector(`#${day}-${time}-max-count`) as HTMLSelectElement).value;
 
+      //get the filtered mentors
+      const filteredNames = Array.from({ length: 3 })
+        .map((_, ix) => document.querySelector(`#${day}-${time}-${ix}`))
+        .filter((element): element is HTMLSelectElement => element !== null)
+        .map((ele) => ele.value)
+        .filter((name): name is string => name !== "Any");
+
+      //if "nobody works this shift" is on, then force None to be the only valid thing on that day
+      if (noMentors) {
+        filters.push({ day, time, noMentors, minMentors: 1, maxMentors: 1, names: [] } as FilterInterface);
+      } else {
         //verify that min shift is less than or equal max shift
         if (minCount > maxCount) {
           setWarningText(`${warningPrefix} Min Shifts cannot be greater than Max Shifts`);
+          return;
+        }
+
+        //todo if the minCount and maxCount is the same as the global ones and there aren't any mentors suggested
+        if (minCount == maxCount && filteredNames.length == 0) {
+          setWarningText(`${warningPrefix} This is redundant. Either edit or remove it`);
           return;
         }
 
@@ -345,13 +328,11 @@ const GenerateSchedule = () => {
           }
         }
 
-        console.log(minCount);
-        console.log(maxCount);
-        console.log(filteredNames);
+        filters.push({ day, time, noMentors, minMentors: 1, maxMentors: 1, names: [] } as FilterInterface);
       }
     }
 
-    //todo if "nobody works this shift" is on, then force None to be the only valid thing on that day
+    console.log(filters);
 
     return;
 
@@ -487,6 +468,18 @@ const GenerateSchedule = () => {
     setGeneratingSchedules(false);
   }
 
+  function getMentorCountDropDown(onChangeMethod: React.Dispatch<React.SetStateAction<number>>) {
+    return (
+      <select onChange={(e) => onChangeMethod(parseFloat(e.target.value))}>
+        {Array.from({ length: 3 }).map((_, ix) => (
+          <option key={ix + 1} value={ix + 1}>
+            {ix + 1}
+          </option>
+        ))}
+      </select>
+    );
+  }
+
   /**
    * Gets all the filters for a specific day and time
    * @param {FilterInterface[]} allFilters all of the filters
@@ -596,54 +589,6 @@ const GenerateSchedule = () => {
       }
     }
     return false;
-  }
-
-  /**
-   * Get a dropdown element of all the mentors working a specific day and time
-   * @param {string} className the class of the element that tells the day/time of the shift. Ex: Monday-10
-   * @return {JSX.Element} a select dropdown element where all the options are the relevant mentor names
-   */
-  function getDropDown(className: string): JSX.Element {
-    if (isLoading || savedMentors === undefined) {
-      <select></select>;
-    }
-    const day = className.split("-")[0];
-    const time = className.split("-")[1];
-    const timeIndex = times.indexOf(time);
-    const validMentors = savedMentors.filter((mentor) => mentor.availability[day as keyof MentorInterface["availability"]][timeIndex]);
-    //add the ability to select "None"
-    const names = ["Any", "None"].concat(validMentors.map((mentor) => mentor.name));
-    const selectOption = (
-      <select className={className}>
-        {names.map((name) => (
-          <option key={name} value={name}>
-            {name}
-          </option>
-        ))}
-      </select>
-    );
-    //todo: change this to be dynamic
-    switch (globalMaxMentorCount) {
-      case 1:
-        return <div>{selectOption}</div>;
-
-      case 2:
-        return (
-          <div>
-            {selectOption}
-            {selectOption}
-          </div>
-        );
-
-      default: //3
-        return (
-          <div>
-            {selectOption}
-            {selectOption}
-            {selectOption}
-          </div>
-        );
-    }
   }
 
   /**
