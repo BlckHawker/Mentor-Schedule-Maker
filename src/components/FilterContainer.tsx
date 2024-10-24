@@ -1,7 +1,7 @@
 "use client";
 import { MentorInterface } from "@/app/interface/Mentor";
 import { useState, useEffect } from "react";
-import { AbstractFilter } from "./AbstractFilter";
+import { AbstractFilter } from "../app/interface/AbstractFilter";
 import Filter from "./Filter";
 
 interface Props {

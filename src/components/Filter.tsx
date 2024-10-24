@@ -1,7 +1,7 @@
 "use client";
 import { MentorInterface } from "@/app/interface/Mentor";
 import { useState, useEffect } from "react";
-import { AbstractFilter } from "./AbstractFilter";
+import { AbstractFilter } from "../app/interface/AbstractFilter";
 
 interface Props {
   day: string;
@@ -14,6 +14,7 @@ interface Props {
 }
 
 const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
+
 
 const Filter = (props: Props) => {
   const [minShift, setMinShift] = useState<number>(props.globalMinShifts);
@@ -30,10 +31,12 @@ const Filter = (props: Props) => {
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
           <b>Min Shifts:</b>
-          < input type="text" style={{ width: "30px" }} disabled={nobodyWorks} onChange={(e) => setMinShift(parseInt(e.target.value))} value={minShift}></input>
+          {getMentorCountDropDown(`${props.day}-${props.time}-min-count`,setMinShift)}
           <b>Max Shifts:</b>
-          <input type="text" style={{ width: "30px" }} disabled={nobodyWorks} onChange={(e) => setMaxShift(parseInt(e.target.value))} value={maxShift}></input>
+          {getMentorCountDropDown(`${props.day}-${props.time}-max-count`, setMaxShift)}
         </div>
+
+        
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
           <b>Mentors</b>
           {getMentorDropDown()}
@@ -48,17 +51,26 @@ const Filter = (props: Props) => {
   function getMentorDropDown() {
     const relevantMentors = props.mentors.filter((mentor) => mentor.availability[props.day as keyof MentorInterface["availability"]][times.indexOf(props.time)]);
     const mentorNames = ['Any'].concat(relevantMentors.map(mentor => mentor.name));
-    return Array.from({ length: minShift }).map((_) => (
-      <select disabled={nobodyWorks}>
+    return Array.from({ length: minShift }).map((_, ix) => (
+      <select id={`${props.day}-${props.time}-${ix}`}  disabled={nobodyWorks}> 
         {
           mentorNames
           .map((name) => (
-            <option key={name} value={name}>
+            <option key={name} value={name}> 
               {name}
             </option>
           ))}
       </select>
     ))
+  }
+
+  function getMentorCountDropDown(idName: string, onChangeMethod: React.Dispatch<React.SetStateAction<number>>) {
+    
+      return <select id={idName} disabled={nobodyWorks} onChange={((e) => onChangeMethod(parseFloat(e.target.value)))}>
+        {Array.from({ length: 3 }).map((_, ix) => (
+          <option key={ix + 1} value={ix + 1}>{ix + 1}</option>
+        ))}
+      </select>
   }
   function deleteFilter() {
     const newAbstractFilter = props.abstractFilters.filter((f) => !(f.day == props.day && f.time == props.time));
