@@ -13,7 +13,9 @@ interface Props {
   showAbstractFilters: DayAbstractFilters;
   setAbstractFilters: React.Dispatch<React.SetStateAction<AbstractFilter[]>>;
   setShowAbstractFilters: React.Dispatch<React.SetStateAction<DayAbstractFilters>>;
+  allowNoneSchedules: boolean
 }
+
 
 const FilterContainer = (props: Props) => {
   return (
@@ -34,8 +36,8 @@ const FilterContainer = (props: Props) => {
               day={props.day}
               time={f.time}
               abstractFilters={props.abstractFilters}
-              setAbstractFilters={props.setAbstractFilters}
-            />
+              setAbstractFilters={props.setAbstractFilters} 
+              allowNoneSchedules={props.allowNoneSchedules}            />
           ))}
     </div>
   );
