@@ -105,26 +105,26 @@ const GenerateSchedule = () => {
           <div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
               <input type="checkbox" checked={forceAllMentorsBoolean} onChange={(e) => setForceAllMentorsBoolean(e.target.checked)} />
-              <ToolTip mainText={"Force All Mentors"} toolText={"Only gives schedules where all mentors have at least one shift"} idName={"force-all-mentors"} />
+              <ToolTip mainText={"Force All Mentors"} toolText={"Only gives schedules where all mentors have at least one shift"} idName={"force-all-mentors"} textBold={false} />
             </div>
 
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
               <input type="checkbox" checked={allowNoneSchedules} onChange={(e) => setAllowNoneSchedules(e.target.checked)} />
-              <ToolTip mainText={"Allow None Schedules"} toolText={"Allow schedules where no one is schedules for a shift"} idName={"allow-none-schedules"} />
+              <ToolTip mainText={"Allow None Schedules"} toolText={"Allow schedules where no one is schedules for a shift"} idName={"allow-none-schedules"} textBold={false} />
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-              <ToolTip mainText={"Minimum mentors per shift"} toolText={"The minimum amount of mentors per shift"} idName={"min-mentors-per-shift"} />
+              <ToolTip mainText={"Minimum mentors per shift"} toolText={"The minimum amount of mentors per shift"} idName={"min-mentors-per-shift"} textBold={false} />
               {getMentorCountDropDown(setMinMentors)}
-              <ToolTip mainText={"Maximum mentors per shift"} toolText={"The maximum amount of mentors per shift"} idName={"max-mentors-per-shift"} />
+              <ToolTip mainText={"Maximum mentors per shift"} toolText={"The maximum amount of mentors per shift"} idName={"max-mentors-per-shift"} textBold={false} />
               {getMentorCountDropDown(setMaxMentors)}
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-              <ToolTip mainText={"Max Shifts"} toolText={"The max amount of shifts each mentor is allowed to work in a week"} idName={"max-mentors"} />
+              <ToolTip mainText={"Max Shifts"} toolText={"The max amount of shifts each mentor is allowed to work in a week"} idName={"max-mentors"} textBold={false} />
               <input type="text" value={maxShiftsString} onChange={(e) => setMaxShiftsString(e.target.value)} />
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
               <input type="checkbox" checked={maxTimeBoolean} onChange={(e) => setMaxTimeBoolean(e.target.checked)} />
-              <ToolTip mainText={"Max Time"} toolText={"(optional) The time generation will take (in minutes)"} idName={"max-time"} />
+              <ToolTip mainText={"Max Time"} toolText={"(optional) The time generation will take (in minutes)"} idName={"max-time"} textBold={false} />
               <input type="text" value={maxTimeString} onChange={(e) => setMaxTimeString(e.target.value)} disabled={!maxTimeBoolean}></input>
             </div>
             <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
@@ -133,8 +133,7 @@ const GenerateSchedule = () => {
               <ToolTip
                 mainText={"Max Schedules"}
                 toolText={`(optional) The max amount of schedules that will be found until generation stops (max being ${numberWithCommas(maxSchedulesAllowed)})`}
-                idName={"max-schedules"}
-              />
+                idName={"max-schedules"} textBold={false}              />
               <input type="text" value={maxSchedulesString} onChange={(e) => setMaxSchedulesString(e.target.value)} disabled={!maxSchedulesBoolean}></input>
             </div>
           </div>
@@ -290,7 +289,6 @@ const GenerateSchedule = () => {
       const time = abstractFilter.time;
       const warningPrefix = `The filter for ${day} at ${time} is invalid:`;
 
-      console.log(day, time);
       //get "nobody works this shift" boolean
       const noMentors = (document.querySelector(`#${day}-${time}-nobody-works`) as HTMLInputElement).checked;
 
@@ -317,7 +315,7 @@ const GenerateSchedule = () => {
           return;
         }
 
-        //todo if the minCount and maxCount is the same as the global ones and there aren't any mentors suggested
+        //if the minCount and maxCount is the same as the global ones and there aren't any mentors suggested
         if (minCount == minMentors && maxCount == maxMentors && filteredNames.length == 0) {
           setWarningText(`${warningPrefix} This is redundant. Either edit or remove it`);
           return;

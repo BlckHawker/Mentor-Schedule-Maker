@@ -2,6 +2,7 @@
 import { MentorInterface } from "@/app/interface/Mentor";
 import { useState, useEffect } from "react";
 import { AbstractFilter } from "../app/interface/AbstractFilter";
+import ToolTip from "./ToolTip";
 
 interface Props {
   day: string;
@@ -22,8 +23,8 @@ const Filter = (props: Props) => {
   const [nobodyWorks, setNobodyWorks] = useState(false);
 
   useEffect(() => {
-    if(!props.allowNoneSchedules) {
-      setNobodyWorks(false)
+    if (!props.allowNoneSchedules) {
+      setNobodyWorks(false);
     }
   }, [props.allowNoneSchedules]);
 
@@ -31,18 +32,18 @@ const Filter = (props: Props) => {
     <div style={{ display: "flex", flexDirection: "column", alignContent: "center", textAlign: "center" }}>
       <u>{props.time + (["10", "11"].includes(props.time) ? " am" : " pm")}</u>
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", border: "dotted rgba(0, 0, 0, 0.5)", marginLeft: "200px", marginRight: "200px" }}>
-        <div style={{ marginTop: "10px" }}>
-          <input id={`${props.day}-${props.time}-nobody-works`} type="checkbox" disabled={!props.allowNoneSchedules} checked={nobodyWorks} onChange={(e) => setNobodyWorks(e.target.checked)}></input>
-          <b>Nobody works this shift</b>
+        <div style={{ marginTop: "10px",  display: "flex", justifyContent: "center" }}>
+            <input id={`${props.day}-${props.time}-nobody-works`} type="checkbox" disabled={!props.allowNoneSchedules} checked={nobodyWorks} onChange={(e) => setNobodyWorks(e.target.checked)}></input>
+            <ToolTip mainText={"Nobody works this shift"} toolText={"Force nobody to be assigned this shift"} idName={`${props.day}-${props.time}-nobody-works`} textBold={true} />
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-          <b>Min Shifts:</b>
+          <ToolTip mainText={"Min Shifts"} toolText={"The minimum amount of mentor for this shift"} idName={`${props.day}-${props.time}-minShifts`} textBold={true} />
           {getMentorCountDropDown(`${props.day}-${props.time}-min-count`, minShift, setMinShift)}
-          <b>Max Shifts:</b>
+          <ToolTip mainText={"Max Shifts"} toolText={"The maximum amount of mentor for this shift"} idName={`${props.day}-${props.time}-minShifts`} textBold={true} />
           {getMentorCountDropDown(`${props.day}-${props.time}-max-count`, maxShift, setMaxShift)}
         </div>
         <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
-          <b>Mentors</b>
+          <ToolTip mainText={"Mentors"} toolText={"Force specific mentor(s) to work this shift"} idName={`${props.day}-${props.time}-assigned-mentors`} textBold={true} />
           {getMentorDropDown()}
         </div>
         <button style={{ marginBottom: "20px", width: "65px" }} onClick={() => deleteFilter()}>
