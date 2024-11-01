@@ -16,7 +16,7 @@ interface Props {
 
 const ScheduleManager = (props: Props) => {
     const scheduleNumberOptions = ["3", "5", "10", "20"];
-    const [schedulesPerPage, setSchedulesPerPage] = useState(3);
+    const [schedulesPerPage, setSchedulesPerPage] = useState(parseInt(scheduleNumberOptions[0]));
     const [pageIndex, setPageIndex] = useState(0);
 
     if (props.savedSchedules && props.savedSchedules.length > 0) {
@@ -48,13 +48,15 @@ const ScheduleManager = (props: Props) => {
         const startingIndex = getStartIndex();
         const endingIndex = getEndIndex();
 
-        //console.log(startingIndex, endingIndex);
         const targetSchedules = props.savedSchedules.filter((_, ix) => ix >= startingIndex && ix <= endingIndex);
-        return targetSchedules.map((schedule, ix) =>
-            <div>
+        return <div style={{display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr)", placeItems: "center", gap: "20px 0px"}}>
+        {targetSchedules.map((schedule, ix) =>
+            <div style={{display: "flex", flexDirection: "column", alignItems: "center"}}>
                 <h3>Schedule {startingIndex + ix + 1}</h3>
                 <IndividualSchedule schedule={schedule} days={props.days} times={props.times} mentorNames={props.mentorNames} colorDictionary={props.colorDictionary} />
-            </div>)
+            </div>)}
+        </div> 
+        
     }
 
     function getStartIndex() {
