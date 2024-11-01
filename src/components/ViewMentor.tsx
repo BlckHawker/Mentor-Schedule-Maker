@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { MentorInterface } from "@/app/interface/Mentor";
-import { Schedule } from "@/app/interface/Schedule";
 import Mentor from "@/components/Mentor";
+import styles from '../css/utils.module.css'
 const ViewClient = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [savedMentors, setSavedMentors] = useState<MentorInterface[]>();
@@ -37,9 +37,10 @@ const ViewClient = () => {
     }
     return (
         <div>
-            <h2>Mentors</h2>
-            <p>Saved mentors: {savedMentors.length}</p>
-            {savedMentors.map(m => <Mentor mentor={m} savedMentors={savedMentors} setSavedMentors={setSavedMentors}></Mentor>)}
+            <p style={{textAlign: "center"}}>Mentors in local storage: {savedMentors.length}</p>
+            <div className={styles.mentorGrid} style={{display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr)", placeItems: "center", gap: "20px 0px"}}>
+                {savedMentors.map(m => <Mentor mentor={m} savedMentors={savedMentors} setSavedMentors={setSavedMentors}></Mentor>)}
+            </div>
         </div>
     );
 }

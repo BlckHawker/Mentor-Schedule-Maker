@@ -7,7 +7,6 @@ import NavBar from "@/components/NavBar";
 export default function MentorCreatePage() {
   return (
       <div>
-        <h1>Mentor Create Page</h1>
         <NavBar/>
         <CreateMentor></CreateMentor>
       </div>

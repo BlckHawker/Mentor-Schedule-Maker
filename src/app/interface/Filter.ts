@@ -1,7 +1,10 @@
 interface FilterInterface {
-    selectedMentor: string,
-    selectedDay: string,
-    selectedTime: string;
+    day: string,
+    time: string,
+    noMentors: boolean,
+    minMentors: number,
+    maxMentors: number,
+    names: string[]
 }
 
 export type { FilterInterface }
