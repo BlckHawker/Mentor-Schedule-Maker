@@ -6,6 +6,7 @@ import { Color } from "@/app/interface/Color";
 import ScheduleManager from "./ScheduleManager";
 import { FilterInterface } from "@/app/interface/Filter";
 import { Day } from "@/app/interface/Day";
+import { ViewSchedulesFilter } from "@/app/interface/ViewSchedulesFilter";
 
 
 const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
@@ -145,13 +146,13 @@ function generateColorsArray() {
 
 function changeFilteredSchedules(schedules: Schedule[], setFilteredSchedules: any) {
     //get new filters
-    const filters: FilterInterface[] = [];
+    const filters: ViewSchedulesFilter[] = [];
 
     for (const selectedDay of days) {
         for (const selectedTime of times) {
             const selectedMentor = (document.querySelector(`#${selectedDay}-${selectedTime}`) as HTMLInputElement).value;
             if (selectedMentor !== "Any") {
-                filters.push({ selectedMentor, selectedDay, selectedTime });
+                filters.push({ mentor: selectedMentor, day: selectedDay, time: selectedTime });
             }
         }
     }
@@ -159,12 +160,12 @@ function changeFilteredSchedules(schedules: Schedule[], setFilteredSchedules: an
     applyCustomFilters(filters, schedules, setFilteredSchedules);
 }
 
-function applyCustomFilters(filters: FilterInterface[], schedules: Schedule[], setFilteredSchedules: any) {
+function applyCustomFilters(filters: ViewSchedulesFilter[], schedules: Schedule[], setFilteredSchedules: any) {
     let newSchedules = [...schedules];
 
     //for each filter, get rid of any schedules that don't follow it
     for (const filter of filters) {
-        newSchedules = newSchedules.filter(schedule => schedule[filter.selectedDay as keyof Schedule][filter.selectedTime as keyof Day].includes(filter.selectedMentor))
+        newSchedules = newSchedules.filter(schedule => schedule[filter.day as keyof Schedule][filter.time as keyof Day].includes(filter.mentor))
     }
     setFilteredSchedules(newSchedules);
 }
