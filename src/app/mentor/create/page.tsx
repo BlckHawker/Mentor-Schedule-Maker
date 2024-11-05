@@ -7,7 +7,7 @@ import NavBar from "@/components/NavBar";
 export default function MentorCreatePage() {
   return (
       <div>
-        <NavBar/>
+        <NavBar boldedWord={"Create/Edit Mentor"}/>
         <CreateMentor></CreateMentor>
       </div>
   );

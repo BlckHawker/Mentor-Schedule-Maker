@@ -95,7 +95,7 @@ const GenerateSchedule = () => {
   }
   return (
     <div>
-      <NavBar />
+      <NavBar boldedWord={"Generate Schedules"} />
       <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "10px" }}>
         <div style={{ display: "flex", fontSize: "23px", justifyContent: "center", gap: "10px" }}>
           <b>Global Options</b>

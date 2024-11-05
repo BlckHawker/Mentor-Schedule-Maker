@@ -6,7 +6,7 @@ import NavBar from "@/components/NavBar";
 const Mentor = () => {
   return (
     <div>
-      <NavBar/>
+      <NavBar boldedWord={"View Mentors"}/>
       <ViewMentor></ViewMentor>
     </div>
   );

@@ -3,7 +3,7 @@ import NavBar from '@/components/NavBar';
 export default function Home() {
   return (
       <div>
-        <NavBar/>
+        <NavBar boldedWord={'Home'}/>
         <h2 style={{textAlign: "center"}}>What is this?</h2>
         <p style={{textAlign: "center"}}>This website displays all the possible schedules for mentors given their availability. Here is a list of what all the pages do.</p>
 

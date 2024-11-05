@@ -46,7 +46,7 @@ const ViewSchedules = () => {
     }
     return (
         <div>
-            <NavBar />
+            <NavBar boldedWord={"View Schedules"} />
             {savedSchedules &&
                 <p>{savedSchedules.length === 0 ? "No schedules saved in local storage" : `${savedSchedules.length} schedules found (${filteredSchedules?.length} with filters)`}</p>}
 
