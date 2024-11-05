@@ -62,7 +62,7 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Sc
       return (
         <td>
           <svg width={width} height={height} style={{ backgroundColor: mentorObj.backgroundColor }}>
-            {createText(width / 2, 0, height / 2, 0, mentors[0], 0)}
+            {createText(width / 2, 0, height / 2, 0, mentors[0], mentorObj.color, 0)}
           </svg>
         </td>
       );
@@ -83,8 +83,8 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Sc
           <svg width={width} height={height}>
             {createPath(arr1, mentorObjs[0].backgroundColor)}
             {createPath(arr2, mentorObjs[1].backgroundColor)}
-            {createText(width / 2, -width / 2, height / 2, 0, mentors[0])}
-            {createText(width / 2, -width / 2, height / 2, height * .4, mentors[1])}
+            {createText(width / 2, -width / 2, height / 2, 0, mentors[0],  mentorObjs[0].color)}
+            {createText(width / 2, -width / 2, height / 2, height * .4, mentors[1],  mentorObjs[1].color)}
           </svg>
         </td>
       );
@@ -105,9 +105,9 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Sc
           <svg width={width} height={height} style={{backgroundColor: mentorObjs[1].backgroundColor}}>
             {createPath(arr1, mentorObjs[0].backgroundColor)}
             {createPath(arr2, mentorObjs[2].backgroundColor)}
-            {createText(width / 2, -width / 2, height / 2, -height *.05, mentors[0])}
-            {createText(width / 2, -width / 2, height / 2, height * .2, mentors[1])}
-            {createText(width / 2, -width / 2, height / 2, height / 2, mentors[2])}
+            {createText(width / 2, -width / 2, height / 2, -height *.05, mentors[0], mentorObjs[0].color)}
+            {createText(width / 2, -width / 2, height / 2, height * .2, mentors[1], mentorObjs[1].color)}
+            {createText(width / 2, -width / 2, height / 2, height / 2, mentors[2], mentorObjs[2].color)}
           </svg>
         </td>
       );
@@ -123,9 +123,9 @@ function renderTimeBlock(schedule: Schedule, colorDictionary: any, day: keyof Sc
   }
 }
 
-function createText(x: number, xOffset: number, y: number, yOffset: number, text: string, degree: number = -45) {
+function createText(x: number, xOffset: number, y: number, yOffset: number, text: string, fillColor: string, degree: number = -45) {
   return (
-    <text fontSize={"12px"} x={x + xOffset} y={y + yOffset} style={{ textAnchor: "middle", dominantBaseline: "middle", transform: `rotate(${degree}deg)` }}>
+    <text fontSize={"12px"} x={x + xOffset} y={y + yOffset} style={{ textAnchor: "middle", dominantBaseline: "middle", transform: `rotate(${degree}deg)`, fill: fillColor }}>
       {text}
     </text>
   );
