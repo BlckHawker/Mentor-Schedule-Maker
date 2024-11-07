@@ -158,7 +158,6 @@ const GenerateSchedule = () => {
             {days.map((day) => (
               <FilterContainer
                 abstractFilters={abstractFilters
-                  .filter((f) => f.day == day)
                   .sort((f1, f2) => {
                     return times.indexOf(f1.time) - times.indexOf(f2.time);
                   })}
@@ -351,7 +350,6 @@ const GenerateSchedule = () => {
     for (const day of days) {
       await new Promise((r) => setTimeout(r, pauseTime));
       allDayPossibilities[day] = getAllDayPossibilities(day, filters, maxShiftsNumber);
-
       console.log(allDayPossibilities[day]);
     }
 
