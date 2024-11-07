@@ -20,25 +20,28 @@ interface Props {
 const FilterContainer = (props: Props) => {
   return (
     <div>
-      <div style={{display: "flex", justifyContent: "center", gap: "10px"}}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
         <b>{props.day}</b>
         <button style={{ marginBottom: "20px", width: "65px" }} disabled={getRelevantFilters().length == 0} onClick={() => toggleDayFilters()}>
           {props.showAbstractFilters[props.day as keyof DayAbstractFilters] ? "Hide" : "Show"}
         </button>
       </div>
       {props.showAbstractFilters[props.day as keyof DayAbstractFilters] &&
-        getRelevantFilters()
-          .map((f) => (
-            <Filter
-              mentors={props.mentors}
-              globalMinShifts={props.globalMinShifts}
-              globalMaxShift={props.globalMaxShift}
-              day={props.day}
-              time={f.time}
-              abstractFilters={props.abstractFilters}
-              setAbstractFilters={props.setAbstractFilters} 
-              allowNoneSchedules={props.allowNoneSchedules}            />
-          ))}
+        <div style={{display: "grid", gridTemplateColumns: `repeat(${Math.min(getRelevantFilters().length, 4)}, minmax(0, 1fr))`,  placeItems: "center"}}>
+          {getRelevantFilters()
+            .map((f) => (
+              <Filter
+                mentors={props.mentors}
+                globalMinShifts={props.globalMinShifts}
+                globalMaxShift={props.globalMaxShift}
+                day={props.day}
+                time={f.time}
+                abstractFilters={props.abstractFilters}
+                setAbstractFilters={props.setAbstractFilters}
+                allowNoneSchedules={props.allowNoneSchedules} />
+            ))}
+        </div>
+      }
     </div>
   );
 
@@ -50,12 +53,12 @@ const FilterContainer = (props: Props) => {
 
     props.setShowAbstractFilters(newShowAbstractFilters);
   }
-  
+
   function getRelevantFilters() {
     return props.abstractFilters.filter((f) => f.day == props.day)
   }
 
-  
+
 };
 
 export default FilterContainer;
