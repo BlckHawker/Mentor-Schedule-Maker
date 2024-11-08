@@ -1,7 +1,7 @@
 "use client";
 import { MentorInterface } from "@/app/interface/Mentor";
 import { useState, useEffect } from "react";
-import { AbstractFilter } from "../app/interface/AbstractFilter";
+import {  AbstractShiftFilter } from "../app/interface/AbstractFilter";
 import ToolTip from "./ToolTip";
 
 interface Props {
@@ -10,14 +10,14 @@ interface Props {
   globalMinShifts: number;
   globalMaxShift: number;
   mentors: MentorInterface[];
-  abstractFilters: AbstractFilter[];
+  abstractFilters: AbstractShiftFilter[];
   setAbstractFilters: any; //todo replace this with the function
   allowNoneSchedules: boolean;
 }
 
 const times = ["10", "11", "12", "1", "2", "3", "4", "5"];
 
-const Filter = (props: Props) => {
+const ShiftFilter = (props: Props) => {
   const [minShift, setMinShift] = useState<number>(props.globalMinShifts);
   const [maxShift, setMaxShift] = useState(props.globalMaxShift);
   const [nobodyWorks, setNobodyWorks] = useState(false);
@@ -85,4 +85,4 @@ const Filter = (props: Props) => {
   }
 };
 
-export default Filter;
+export default ShiftFilter;

@@ -1,6 +1,6 @@
-interface AbstractFilter {
+interface AbstractShiftFilter {
     day: string,
     time: string,
 }
 
-export type { AbstractFilter }
+export type { AbstractShiftFilter }

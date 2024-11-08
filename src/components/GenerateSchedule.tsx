@@ -5,9 +5,11 @@ import { Day } from "@/app/interface/Day";
 import { useState, useEffect } from "react";
 import { FilterInterface } from "@/app/interface/Filter";
 import NavBar from "./NavBar";
-import { AbstractFilter } from "../app/interface/AbstractFilter";
+import { AbstractShiftFilter } from "../app/interface/AbstractFilter";
 import FilterContainer from "./FilterContainer";
 import ToolTip from "./ToolTip";
+import { DayFilterInterface } from "@/app/interface/DayFilter";
+import { register } from "module";
 
 const GenerateSchedule = () => {
   const pauseTime = 1; //the amount of milliseconds that will pass when "setTimeout" is called. Is there just to allow generating info to update in real time
@@ -47,10 +49,13 @@ const GenerateSchedule = () => {
   const [savedMentorNames, setSavedMentorNames] = useState<string[]>([]); //the mentor names that are loaded from local storage
   const [possibleSchedules, setPossibleSchedules] = useState<Schedule[]>(); //the generated schedules
   const [warningText, setWarningText] = useState(""); //text that will appear that gives the user information related to their input and the generation
-  const [showFilterPopUp, setShowFilterPopUp] = useState(false);
-  const [abstractFilters, setAbstractFilters] = useState<AbstractFilter[]>([]);
-  const [selectedFilterDay, setSelectedFilterDay] = useState<string>(days[0]);
-  const [selectedFilterTime, setSelectedFilterTime] = useState<string>(times[0]);
+  const [showShiftFilterPopUp, setShowShiftFilterPopUp] = useState(false);
+  const [showDayFilterPopUp, setShowDayFilterPopUp] = useState(false);
+  const [abstractShiftFilters, setAbstractShiftFilters] = useState<AbstractShiftFilter[]>([]);
+  const [abstractDayFilters, setAbstractDayFilters] = useState<string[]>([])
+  const [selectedShiftFilterDay, setSelectedShiftFilterDay] = useState<string>(days[0]);
+  const [selectedShiftFilterTime, setSelectedShiftFilterTime] = useState<string>(times[0]);
+  const [selectedDayFilterDay, setSelectedDayFilterDay] = useState<string>(days[0]);
   const [showAbstractFilters, setShowAbstractFilters] = useState<DayAbstractFilters>({ Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true });
   const [showGlobalOptions, setShowGlobalOptions] = useState(true);
   const [showFilters, setShowFilters] = useState(true);
@@ -133,7 +138,7 @@ const GenerateSchedule = () => {
               <ToolTip
                 mainText={"Max Schedules"}
                 toolText={`(optional) The max amount of schedules that will be found until generation stops (max being ${numberWithCommas(maxSchedulesAllowed)})`}
-                idName={"max-schedules"} textBold={false}              />
+                idName={"max-schedules"} textBold={false} />
               <input type="text" value={maxSchedulesString} onChange={(e) => setMaxSchedulesString(e.target.value)} disabled={!maxSchedulesBoolean}></input>
             </div>
           </div>
@@ -146,29 +151,37 @@ const GenerateSchedule = () => {
 
         {showFilters && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-            <button
-              onClick={() => {
-                setShowFilterPopUp(true);
-                setSelectedFilterTime(times[0]);
-                setSelectedFilterDay(days[0]);
-              }}
-            >
-              Add Filter
-            </button>
+            <div style={{ display: "flex", justifyContent: "center", alignContent: "center", gap: "10px" }}>
+              <button
+                onClick={() => {
+                  setShowShiftFilterPopUp(true);
+                  setSelectedShiftFilterTime(times[0]);
+                  setSelectedShiftFilterDay(days[0]);
+                }}
+              >
+                Add Shift Filter
+              </button>
+              <button onClick={() => {
+                setShowDayFilterPopUp(true);
+                setSelectedDayFilterDay(days[0]);
+              }}>Add Day Filter</button>
+            </div>
+
             {days.map((day) => (
               <FilterContainer
-                abstractFilters={abstractFilters
+                abstractShiftFilters={abstractShiftFilters
                   .sort((f1, f2) => {
                     return times.indexOf(f1.time) - times.indexOf(f2.time);
                   })}
+                abstractDayFilters={abstractDayFilters}
                 mentors={savedMentors}
                 day={day}
                 globalMinShifts={minMentors}
                 globalMaxShift={maxMentors}
-                setAbstractFilters={setAbstractFilters}
+                setAbstractFilters={setAbstractShiftFilters}
                 showAbstractFilters={showAbstractFilters}
-                setShowAbstractFilters={setShowAbstractFilters} 
-                allowNoneSchedules={allowNoneSchedules}              />
+                setShowAbstractFilters={setShowAbstractFilters}
+                allowNoneSchedules={allowNoneSchedules} setAbstractDayFilters={setAbstractDayFilters} />
             ))}
             {generatingSchedules && (
               <div>
@@ -177,8 +190,8 @@ const GenerateSchedule = () => {
               </div>
             )}
             {
-              /* Pop up for filters */
-              showFilterPopUp && (
+              /* Pop up for shift filters */
+              showShiftFilterPopUp && (
                 <div
                   style={{
                     position: "fixed",
@@ -189,13 +202,13 @@ const GenerateSchedule = () => {
                     height: "100%",
                     overflow: "auto",
                     backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    display: showFilterPopUp ? "show" : "none",
+                    display: showShiftFilterPopUp ? "show" : "none",
                   }}
                 >
                   <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
                     <h2>Select which day and time the filter should be for</h2>
                     <div style={{ display: "flex", gap: "10px" }}>
-                      <select onChange={(e) => setSelectedFilterDay(e.target.value)}>
+                      <select onChange={(e) => setSelectedShiftFilterDay(e.target.value)}>
                         <b>Selected Day</b>
                         {days.map((day) => (
                           <option key={day} value={day}>
@@ -203,7 +216,7 @@ const GenerateSchedule = () => {
                           </option>
                         ))}
                       </select>
-                      <select onChange={(e) => setSelectedFilterTime(e.target.value)}>
+                      <select onChange={(e) => setSelectedShiftFilterTime(e.target.value)}>
                         {times.map((time) => (
                           <option key={time} value={time}>
                             {time}
@@ -211,10 +224,50 @@ const GenerateSchedule = () => {
                         ))}
                       </select>
                     </div>
-                    {foundAbstractFilter() && <p style={{ color: "red" }}>A filter of that day and time already exists</p>}
+                    {foundAbstractShiftFilter() && <p style={{ color: "red" }}>A filter of that day and time already exists</p>}
                     <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                      <button onClick={() => setShowFilterPopUp(false)}>Close</button>
-                      <button onClick={() => addFilter()} disabled={foundAbstractFilter()}>
+                      <button onClick={() => setShowShiftFilterPopUp(false)}>Close</button>
+                      <button onClick={() => addShiftFilter()} disabled={foundAbstractShiftFilter()}>
+                        Add Filter
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            }
+
+            {
+              /* pop up for day filter*/
+              showDayFilterPopUp && (
+                <div
+                  style={{
+                    position: "fixed",
+                    zIndex: "1",
+                    left: "0",
+                    top: "0",
+                    width: "100%",
+                    height: "100%",
+                    overflow: "auto",
+                    backgroundColor: "rgba(0, 0, 0, 0.4)",
+                    display: showDayFilterPopUp ? "show" : "none",
+                  }}
+                >
+                  <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                    <h2>Select which day the filter should be for</h2>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <select onChange={(e) => setSelectedDayFilterDay(e.target.value)}>
+                        <b>Selected Day</b>
+                        {days.map((day) => (
+                          <option key={day} value={day}>
+                            {day}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {foundAbstractDayFilter() && <p style={{ color: "red" }}>A filter of that day already exists</p>}
+                    <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                      <button onClick={() => setShowDayFilterPopUp(false)}>Close</button>
+                      <button onClick={() => addDayFilter()} disabled={foundAbstractDayFilter()}>
                         Add Filter
                       </button>
                     </div>
@@ -233,14 +286,24 @@ const GenerateSchedule = () => {
     </div>
   );
 
-  function foundAbstractFilter() {
-    return abstractFilters.find((f) => f.day == selectedFilterDay && f.time == selectedFilterTime) != undefined;
+  function foundAbstractShiftFilter() {
+    return abstractShiftFilters.find((f) => f.day == selectedShiftFilterDay && f.time == selectedShiftFilterTime) != undefined;
   }
 
-  function addFilter() {
-    setShowFilterPopUp(false);
-    const newArr = [...abstractFilters, { day: selectedFilterDay, time: selectedFilterTime }];
-    setAbstractFilters(newArr);
+  function foundAbstractDayFilter() {
+    return abstractDayFilters.find((day) => day == selectedDayFilterDay) != undefined;
+  }
+
+  function addShiftFilter() {
+    setShowShiftFilterPopUp(false);
+    const newArr = [...abstractShiftFilters, { day: selectedShiftFilterDay, time: selectedShiftFilterTime }];
+    setAbstractShiftFilters(newArr);
+  }
+
+  function addDayFilter() {
+    setShowDayFilterPopUp(false);
+    const newArr = [...abstractDayFilters, selectedDayFilterDay];
+    setAbstractDayFilters(newArr);
   }
 
   /**
@@ -279,61 +342,81 @@ const GenerateSchedule = () => {
       return;
     }
 
+
     //get the filters
 
-    let filters: FilterInterface[] = [];
+    let shiftFilters: FilterInterface[] = [];
+    const dayFilters: DayFilterInterface[] = [];
 
-    for (const abstractFilter of abstractFilters) {
-      const day = abstractFilter.day;
-      const time = abstractFilter.time;
-      const warningPrefix = `The filter for ${day} at ${time} is invalid:`;
+    let warningPrefix;
+    //get the day filters
+    console.log(abstractDayFilters);
+    for (const day of abstractDayFilters) {
 
-      //get "nobody works this shift" boolean
-      const noMentors = (document.querySelector(`#${day}-${time}-nobody-works`) as HTMLInputElement).checked;
+      warningPrefix = `The day filter "${day}" invalid:`;
+      const noMentors = (document.querySelector(`#day-filter-${day}-nobody-works`) as HTMLInputElement).checked;
+      const minCount = parseInt((document.querySelector(`#day-filter-${day}-min-count`) as HTMLSelectElement).value);
+      const maxCount = parseInt((document.querySelector(`#day-filter-${day}-max-count`) as HTMLSelectElement).value);
 
-      //get min amount of mentors
-      const minCount: number = parseInt((document.querySelector(`#${day}-${time}-min-count`) as HTMLSelectElement).value);
+      //check of the day filter is redundant
+      if (!noMentors && minCount == minMentors && maxCount == maxMentors) {
+        setWarningText(`${warningPrefix} This is redundant. Either edit or remove it`);
+        return;
+      }
 
-      //get max amount of mentors
-      const maxCount: number = parseInt((document.querySelector(`#${day}-${time}-max-count`) as HTMLSelectElement).value);
+      //make the day filter
+      //if noMentors is true, make minMentors and maxMentors 0
+      //otherwise set it to the parametrized values
+      const dayFilter: DayFilterInterface = { day, noMentors, minMentors: noMentors ? 0 : minCount, maxMentors: noMentors ? 0 : maxCount };
+      dayFilters.push(dayFilter);
 
-      //get the filtered mentors
-      const filteredNames = Array.from({ length: 3 })
-        .map((_, ix) => document.querySelector(`#${day}-${time}-${ix}`))
-        .filter((element): element is HTMLSelectElement => element !== null)
-        .map((ele) => ele.value)
-        .filter((name): name is string => name !== "Any");
-
-      //if "nobody works this shift" is on, then force None to be the only valid thing on that day
-      if (noMentors) {
-        filters.push({ day, time, noMentors, minMentors: 1, maxMentors: 1, names: [] } as FilterInterface);
-      } else {
-        //verify that min shift is less than or equal max shift
-        if (minCount > maxCount) {
-          setWarningText(`${warningPrefix} Min Shifts cannot be greater than Max Shifts`);
-          return;
-        }
-
-        //if the minCount and maxCount is the same as the global ones and there aren't any mentors suggested
-        if (minCount == minMentors && maxCount == maxMentors && filteredNames.length == 0) {
-          setWarningText(`${warningPrefix} This is redundant. Either edit or remove it`);
-          return;
-        }
-
-        //verify that any mentors dropdowns that are not "Any", are not duplicate
-        const arr: string[] = [];
-        for (const name of filteredNames) {
-          if (arr.find((n: string) => n == name) == undefined) {
-            arr.push(name);
-          } else {
-            setWarningText(`${warningPrefix} \"Mentors\" cannot have duplicate names (besides \"Any\")`);
+      //for each shift, check if that shift has a filter
+      for (const time of times) {
+        const abstractFilter = abstractShiftFilters.find(f => f.day === day && f.time === time);
+        //if there is a shift filter, add that filter to this list
+        if (abstractFilter !== undefined) {
+          const filter = registerShiftFilter(abstractFilter, shiftFilters, dayFilter);
+          console.log(filter);
+          //if the filter is a string, set a warning and end the generation
+          if (typeof filter === "string") {
+            setWarningText(filter);
             return;
+          }
+
+          //otherwise add the filter
+          if (filter !== null) {
+            shiftFilters.push(filter);
           }
         }
 
-        filters.push({ day, time, noMentors, minMentors: minCount, maxMentors: maxCount, names: filteredNames} as FilterInterface);
+        else {
+          //if there isn't a shift filter, make one with the day filter options
+          shiftFilters.push({ day: dayFilter.day, time, noMentors: dayFilter.noMentors, minMentors: dayFilter.minMentors, maxMentors: dayFilter.maxMentors, names: [] } as FilterInterface);
+        }
+      }
+
+    }
+
+
+
+    //get the shift filters
+    for (const abstractFilter of abstractShiftFilters) {
+      const dayFilter = dayFilters.find(f => f.day === abstractFilter.day) ?? null;
+      const filter = registerShiftFilter(abstractFilter, shiftFilters, dayFilter);
+
+      //set warning text if filter is invalid
+      if(typeof filter === "string") {
+        setWarningText(filter);
+        return;
+      }
+
+      //don't register if already registered
+      else if(filter !== null) {
+        shiftFilters.push(filter);
       }
     }
+
+    console.log(shiftFilters);
 
     //set the starting time and start generation
     const startTime = new Date().getTime();
@@ -349,7 +432,7 @@ const GenerateSchedule = () => {
     //todo: if any of "getAllDayPossibilities" return an empty arr, immediately stop generation
     for (const day of days) {
       await new Promise((r) => setTimeout(r, pauseTime));
-      allDayPossibilities[day] = getAllDayPossibilities(day, filters, maxShiftsNumber);
+      allDayPossibilities[day] = getAllDayPossibilities(day, shiftFilters, maxShiftsNumber);
       console.log(allDayPossibilities[day]);
     }
 
@@ -417,6 +500,72 @@ const GenerateSchedule = () => {
     //play sound to notify user that generation is done
     new Audio(notifSound).play();
     setGeneratingSchedules(false);
+  }
+
+  function registerShiftFilter(abstractFilter: AbstractShiftFilter, registeredShiftFilters: FilterInterface[], dayFilter: DayFilterInterface | null) {
+    {
+      const day = abstractFilter.day;
+      const time = abstractFilter.time;
+
+
+      //don't do anything if the filter was already registered
+      if (registeredShiftFilters.find(f => f.day === day && f.time === time) !== undefined) {
+        return null;
+      }
+      const warningPrefix = `The filter for ${day} at ${time} is invalid:`;
+
+      //get "nobody works this shift" boolean
+      const noMentors = (document.querySelector(`#${day}-${time}-nobody-works`) as HTMLInputElement).checked;
+
+      //get min amount of mentors
+      const minCount: number = parseInt((document.querySelector(`#${day}-${time}-min-count`) as HTMLSelectElement).value);
+
+      //get max amount of mentors
+      const maxCount: number = parseInt((document.querySelector(`#${day}-${time}-max-count`) as HTMLSelectElement).value);
+
+      //get the filtered mentors
+      const filteredNames = Array.from({ length: 3 })
+        .map((_, ix) => document.querySelector(`#${day}-${time}-${ix}`))
+        .filter((element): element is HTMLSelectElement => element !== null)
+        .map((ele) => ele.value)
+        .filter((name): name is string => name !== "Any");
+
+      //check that the shift filter is redundant because of the day filter
+      //noMentors is true, and is the same as the day filter
+      //noMentors is false the minCount and maxCount is the same, but there are no required mentors
+      if (dayFilter !== null && (
+        (noMentors && noMentors == dayFilter.noMentors && filteredNames.length === 0) ||
+        !noMentors && noMentors == dayFilter.noMentors && minCount === dayFilter.minMentors && maxCount === dayFilter.maxMentors && filteredNames.length === 0)) {
+        return `${warningPrefix} redundant due to day filter.`;
+      }
+
+      //if "nobody works this shift" is on, then force None to be the only valid thing on that day
+      if (noMentors) {
+        return { day, time, noMentors, minMentors: 1, maxMentors: 1, names: [] } as FilterInterface;
+      } else {
+        //verify that min shift is less than or equal max shift
+        if (minCount > maxCount) {
+          return `${warningPrefix} Min Shifts cannot be greater than Max Shifts`;
+        }
+
+        //if the minCount and maxCount is the same as the global ones and there aren't any mentors suggested
+        if (minCount == minMentors && maxCount == maxMentors && filteredNames.length == 0) {
+          return `${warningPrefix} This is redundant. Either edit or remove it`;
+        }
+
+        //verify that any mentors dropdowns that are not "Any", are not duplicate
+        const arr: string[] = [];
+        for (const name of filteredNames) {
+          if (arr.find((n: string) => n == name) == undefined) {
+            arr.push(name);
+          } else {
+            return `${warningPrefix} \"Mentors\" cannot have duplicate names (besides \"Any\")`;
+          }
+        }
+
+        return { day, time, noMentors, minMentors: minCount, maxMentors: maxCount, names: filteredNames } as FilterInterface;
+      }
+    }
   }
 
   function getMentorCountDropDown(onChangeMethod: React.Dispatch<React.SetStateAction<number>>) {
@@ -497,7 +646,7 @@ const GenerateSchedule = () => {
     });
 
     //only allow "None" to exist if allowNoneSchedules is true
-    if(allowNoneSchedules) {
+    if (allowNoneSchedules) {
       names.push("None");
     }
 
@@ -662,14 +811,14 @@ const GenerateSchedule = () => {
    * @return {string[][]} all of the possible combinations of shifts
    */
   function getTotalCombination(day: string, index: number, filter: FilterInterface | undefined, min: number, max: number): string[][] {
-    
+
 
     //todo fix bug where min and max are not counted correctly
     //if noMentors is true, the only allow None to be the only thing possible for that shift
-    if(filter?.noMentors) {
+    if (filter?.noMentors) {
       return [['None']]
     }
-    
+
     //get a list of the mentors
     const mentors = getAllTimeShifts(day, index);
     const results: string[][] = [];
@@ -679,7 +828,7 @@ const GenerateSchedule = () => {
 
       //todo if there is a filter, make sure required names are on the list (test this)
       for (const arr of r) {
-        if(filter == undefined || filter.names.every((requiredName) => arr.includes(requiredName))) {
+        if (filter == undefined || filter.names.every((requiredName) => arr.includes(requiredName))) {
           results.push(arr);
         }
       }
