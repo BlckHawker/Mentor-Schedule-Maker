@@ -146,136 +146,142 @@ const GenerateSchedule = () => {
 
         <div style={{ display: "flex", fontSize: "23px", justifyContent: "center", gap: "10px" }}>
           <b>Filters</b>
+
           <button onClick={() => setShowFilters((b) => !b)}>{showFilters ? "Hide" : "Show"}</button>
+
         </div>
 
         {showFilters && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px" }}>
-            <div style={{ display: "flex", justifyContent: "center", alignContent: "center", gap: "10px" }}>
-              <button
-                onClick={() => {
-                  setShowShiftFilterPopUp(true);
-                  setSelectedShiftFilterTime(times[0]);
-                  setSelectedShiftFilterDay(days[0]);
-                }}
-              >
-                Add Shift Filter
-              </button>
-              <button onClick={() => {
-                setShowDayFilterPopUp(true);
-                setSelectedDayFilterDay(days[0]);
-              }}>Add Day Filter</button>
-            </div>
-
-            {days.map((day) => (
-              <FilterContainer
-                abstractShiftFilters={abstractShiftFilters
-                  .sort((f1, f2) => {
-                    return times.indexOf(f1.time) - times.indexOf(f2.time);
-                  })}
-                abstractDayFilters={abstractDayFilters}
-                mentors={savedMentors}
-                day={day}
-                globalMinShifts={minMentors}
-                globalMaxShift={maxMentors}
-                setAbstractFilters={setAbstractShiftFilters}
-                showAbstractFilters={showAbstractFilters}
-                setShowAbstractFilters={setShowAbstractFilters}
-                allowNoneSchedules={allowNoneSchedules} setAbstractDayFilters={setAbstractDayFilters} />
-            ))}
-            {generatingSchedules && (
-              <div>
-                <p>Generating Schedules...{formatTime(elapsedTime)}</p>
-                <p>Found {numberWithCommas(schedulesFound)} schedules</p>
+          <div>
+            <p style={{ textAlign: "center" }}>If you want specific shift or day to be different from the global options (i.e, the number of mentors is different, want specific mentor(s) to work a specific shift)</p>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "10px" }}>
+              <div style={{ display: "flex", justifyContent: "center", alignContent: "center", gap: "10px" }}>
+                <button
+                  onClick={() => {
+                    setShowShiftFilterPopUp(true);
+                    setSelectedShiftFilterTime(times[0]);
+                    setSelectedShiftFilterDay(days[0]);
+                  }}
+                >
+                  Add Shift Filter
+                </button>
+                <button onClick={() => {
+                  setShowDayFilterPopUp(true);
+                  setSelectedDayFilterDay(days[0]);
+                }}>Add Day Filter</button>
               </div>
-            )}
-            {
-              /* Pop up for shift filters */
-              showShiftFilterPopUp && (
-                <div
-                  style={{
-                    position: "fixed",
-                    zIndex: "1",
-                    left: "0",
-                    top: "0",
-                    width: "100%",
-                    height: "100%",
-                    overflow: "auto",
-                    backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    display: showShiftFilterPopUp ? "show" : "none",
-                  }}
-                >
-                  <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <h2>Select which day and time the filter should be for</h2>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      <select onChange={(e) => setSelectedShiftFilterDay(e.target.value)}>
-                        <b>Selected Day</b>
-                        {days.map((day) => (
-                          <option key={day} value={day}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                      <select onChange={(e) => setSelectedShiftFilterTime(e.target.value)}>
-                        {times.map((time) => (
-                          <option key={time} value={time}>
-                            {time}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {foundAbstractShiftFilter() && <p style={{ color: "red" }}>A filter of that day and time already exists</p>}
-                    <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                      <button onClick={() => setShowShiftFilterPopUp(false)}>Close</button>
-                      <button onClick={() => addShiftFilter()} disabled={foundAbstractShiftFilter()}>
-                        Add Filter
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )
-            }
 
-            {
-              /* pop up for day filter*/
-              showDayFilterPopUp && (
-                <div
-                  style={{
-                    position: "fixed",
-                    zIndex: "1",
-                    left: "0",
-                    top: "0",
-                    width: "100%",
-                    height: "100%",
-                    overflow: "auto",
-                    backgroundColor: "rgba(0, 0, 0, 0.4)",
-                    display: showDayFilterPopUp ? "show" : "none",
-                  }}
-                >
-                  <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                    <h2>Select which day the filter should be for</h2>
-                    <div style={{ display: "flex", gap: "10px" }}>
-                      <select onChange={(e) => setSelectedDayFilterDay(e.target.value)}>
-                        <b>Selected Day</b>
-                        {days.map((day) => (
-                          <option key={day} value={day}>
-                            {day}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    {foundAbstractDayFilter() && <p style={{ color: "red" }}>A filter of that day already exists</p>}
-                    <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
-                      <button onClick={() => setShowDayFilterPopUp(false)}>Close</button>
-                      <button onClick={() => addDayFilter()} disabled={foundAbstractDayFilter()}>
-                        Add Filter
-                      </button>
+              {days.map((day) => (
+                <FilterContainer
+                  abstractShiftFilters={abstractShiftFilters
+                    .sort((f1, f2) => {
+                      return times.indexOf(f1.time) - times.indexOf(f2.time);
+                    })}
+                  abstractDayFilters={abstractDayFilters}
+                  mentors={savedMentors}
+                  day={day}
+                  globalMinShifts={minMentors}
+                  globalMaxShift={maxMentors}
+                  setAbstractFilters={setAbstractShiftFilters}
+                  showAbstractFilters={showAbstractFilters}
+                  setShowAbstractFilters={setShowAbstractFilters}
+                  allowNoneSchedules={allowNoneSchedules} setAbstractDayFilters={setAbstractDayFilters} />
+              ))}
+              {generatingSchedules && (
+                <div>
+                  <p>Generating Schedules...{formatTime(elapsedTime)}</p>
+                  <p>Found {numberWithCommas(schedulesFound)} schedules</p>
+                </div>
+              )}
+              {
+                /* Pop up for shift filters */
+                showShiftFilterPopUp && (
+                  <div
+                    style={{
+                      position: "fixed",
+                      zIndex: "1",
+                      left: "0",
+                      top: "0",
+                      width: "100%",
+                      height: "100%",
+                      overflow: "auto",
+                      backgroundColor: "rgba(0, 0, 0, 0.4)",
+                      display: showShiftFilterPopUp ? "show" : "none",
+                    }}
+                  >
+                    <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <h2>Select which day and time the filter should be for</h2>
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <select onChange={(e) => setSelectedShiftFilterDay(e.target.value)}>
+                          <b>Selected Day</b>
+                          {days.map((day) => (
+                            <option key={day} value={day}>
+                              {day}
+                            </option>
+                          ))}
+                        </select>
+                        <select onChange={(e) => setSelectedShiftFilterTime(e.target.value)}>
+                          {times.map((time) => (
+                            <option key={time} value={time}>
+                              {time}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {foundAbstractShiftFilter() && <p style={{ color: "red" }}>A filter of that day and time already exists</p>}
+                      <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                        <button onClick={() => setShowShiftFilterPopUp(false)}>Close</button>
+                        <button onClick={() => addShiftFilter()} disabled={foundAbstractShiftFilter()}>
+                          Add Filter
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )
-            }
+                )
+              }
+
+              {
+                /* pop up for day filter*/
+                showDayFilterPopUp && (
+                  <div
+                    style={{
+                      position: "fixed",
+                      zIndex: "1",
+                      left: "0",
+                      top: "0",
+                      width: "100%",
+                      height: "100%",
+                      overflow: "auto",
+                      backgroundColor: "rgba(0, 0, 0, 0.4)",
+                      display: showDayFilterPopUp ? "show" : "none",
+                    }}
+                  >
+                    <div style={{ backgroundColor: "white", margin: "10% auto", padding: "20px", width: "45%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <h2>Select which day the filter should be for</h2>
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <select onChange={(e) => setSelectedDayFilterDay(e.target.value)}>
+                          <b>Selected Day</b>
+                          {days.map((day) => (
+                            <option key={day} value={day}>
+                              {day}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      {foundAbstractDayFilter() && <p style={{ color: "red" }}>A filter of that day already exists</p>}
+                      <div style={{ display: "flex", gap: "10px", marginTop: "10px" }}>
+                        <button onClick={() => setShowDayFilterPopUp(false)}>Close</button>
+                        <button onClick={() => addDayFilter()} disabled={foundAbstractDayFilter()}>
+                          Add Filter
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+            </div>
           </div>
+
         )}
         <button disabled={generatingSchedules} onClick={() => generateSchedules()}>
           Generate schedules
@@ -397,21 +403,19 @@ const GenerateSchedule = () => {
 
     }
 
-
-
     //get the shift filters
     for (const abstractFilter of abstractShiftFilters) {
       const dayFilter = dayFilters.find(f => f.day === abstractFilter.day) ?? null;
       const filter = registerShiftFilter(abstractFilter, shiftFilters, dayFilter);
 
       //set warning text if filter is invalid
-      if(typeof filter === "string") {
+      if (typeof filter === "string") {
         setWarningText(filter);
         return;
       }
 
       //don't register if already registered
-      else if(filter !== null) {
+      else if (filter !== null) {
         shiftFilters.push(filter);
       }
     }
