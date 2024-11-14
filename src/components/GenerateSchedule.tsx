@@ -429,7 +429,6 @@ const GenerateSchedule = () => {
     //get all of the possible shift (one mentor) for each block
     const allDayPossibilities: { [key: string]: Day[] } = {};
 
-    //todo: if any of "getAllDayPossibilities" return an empty arr, immediately stop generation
     for (const day of days) {
       await new Promise((r) => setTimeout(r, pauseTime));
       allDayPossibilities[day] = getAllDayPossibilities(day, shiftFilters, maxShiftsNumber);
@@ -812,8 +811,6 @@ const GenerateSchedule = () => {
    */
   function getTotalCombination(day: string, index: number, filter: FilterInterface | undefined, min: number, max: number): string[][] {
 
-
-    //todo fix bug where min and max are not counted correctly
     //if noMentors is true, the only allow None to be the only thing possible for that shift
     if (filter?.noMentors) {
       return [['None']]
@@ -826,7 +823,7 @@ const GenerateSchedule = () => {
     for (let i = min; i <= max; i++) {
       const r = getCombinations(mentors, i);
 
-      //todo if there is a filter, make sure required names are on the list (test this)
+      //if there is a filter, make sure required names are on the list
       for (const arr of r) {
         if (filter == undefined || filter.names.every((requiredName) => arr.includes(requiredName))) {
           results.push(arr);

@@ -23,17 +23,34 @@ const ViewSchedules = () => {
         async function fetchData() {
             setIsLoading(true);
             const localStorageSchedules = loadArrFromLocalStorage("schedules");
+
+            //get all the names of mentors from all of the schedules
+            const mentorNames: string[] = [];
+            for(const schedule of localStorageSchedules) {
+                for(const day of days) {
+                    for(const time of times) {
+                        const names = schedule[day][time];
+                        for(const name of names) {
+                            if(name !== "None" && !mentorNames.includes(name)) {
+                                mentorNames.push(name);
+                            }
+                        }
+                    }
+                }
+            }
+            
             const localStorageMentors = loadArrFromLocalStorage("mentors");
-            const mentorsNames = Object.values(localStorageMentors).map((mentor: any) => mentor.name);
             const newColorDictionary = [];
             const colors = generateColorsArray();
             const darkColors = ["#0000FF", "#800080", "#800000", "#800000", "#B22222", "#6A5ACD", "#000080", "#808080", "#8A2BE2", "#008080", "#4682B4", "#008000", "#A0522D"]
 
-            for (let i = 0; i < mentorsNames.length; i++) {
-                newColorDictionary.push({ name: mentorsNames[i], color: colors[i], dark: darkColors.includes(colors[i]) });
+            console.log()
+            //set each name to a color
+            for (let i = 0; i < mentorNames.length; i++) {
+                newColorDictionary.push({ name: mentorNames[i], color: colors[i], dark: darkColors.includes(colors[i]) });
             }
 
-            setSavedMentorNames(mentorsNames);
+            setSavedMentorNames(mentorNames);
             setSavedSchedules(localStorageSchedules);
             setFilteredSchedules(localStorageSchedules);
             setColorDictionary(newColorDictionary);
