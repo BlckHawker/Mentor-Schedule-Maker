@@ -8,6 +8,7 @@ const CreateMentor = () => {
 
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
   const times = ["10", "11", "12", "1", "2", "3", "4", "5"]
+  const endTimes = ["11", "12", "1", "2", "3", "4", "5", "6"]
 
   const blankAvailability = {
     "Monday": [false, false, false, false, false, false, false, false],
@@ -77,8 +78,9 @@ const CreateMentor = () => {
 
   function makeElementArr(time: string) {
     const timeIndex = times.indexOf(time);
+    const endTime = endTimes[timeIndex];
     const buttons = days.map(day => <Block day={day as keyof Availability} index={timeIndex} availability={availability} setAvailability={setAvailability} />)
-    const arr = [<p>{time}</p>].concat(buttons);
+    const arr = [<p>{time} - {endTime}</p>].concat(buttons);
     return arr;
     }
 
