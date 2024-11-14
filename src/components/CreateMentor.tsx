@@ -57,7 +57,7 @@ const CreateMentor = () => {
         <label>Mentor Name (first and last): </label>
         <input type="text" onChange={mentorNameChange}></input>
       </div>
-
+      <p style={{textAlign: "center"}}>Availability</p>
       <div className={styles.gridContainer}>
         <p></p>
             {days.map(d => <b>{d}</b>)}
@@ -77,11 +77,11 @@ const CreateMentor = () => {
   );
 
   function makeElementArr(time: string) {
-    const timeIndex = times.indexOf(time);
-    const endTime = endTimes[timeIndex];
-    const buttons = days.map(day => <Block day={day as keyof Availability} index={timeIndex} availability={availability} setAvailability={setAvailability} />)
-    const arr = [<p>{time} - {endTime}</p>].concat(buttons);
-    return arr;
+      const timeIndex = times.indexOf(time);
+      const endTime = endTimes[timeIndex];
+      const buttons = days.map(day => <Block day={day as keyof Availability} index={timeIndex} availability={availability} setAvailability={setAvailability} />)
+      const arr = [<p>{time} - {endTime}</p>].concat(buttons);
+      return arr;
     }
 
   function createMentor() {
