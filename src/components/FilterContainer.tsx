@@ -15,7 +15,7 @@ interface Props {
   showAbstractFilters: DayAbstractFilters;
   setAbstractFilters: React.Dispatch<React.SetStateAction<AbstractShiftFilter[]>>;
   setShowAbstractFilters: React.Dispatch<React.SetStateAction<DayAbstractFilters>>;
-  setAbstractDayFilters: any;
+  setAbstractDayFilters: any; //todo fix this to not be any
   allowNoneSchedules: boolean
 }
 
@@ -25,7 +25,7 @@ const FilterContainer = (props: Props) => {
     <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", justifyContent: "center", gap: "10px" }}>
       <div style={{ display: "flex", justifyContent: "center", gap: "10px" }}>
         <b>{props.day}</b>
-        <button style={{ marginBottom: "20px", width: "65px" }} disabled={getRelevantFilters().length == 0} onClick={() => toggleDayFilters()}>
+        <button style={{ marginBottom: "20px", width: "65px" }} disabled={getRelevantFilters().length == 0 && !props.abstractDayFilters.includes(props.day)} onClick={() => toggleDayFilters()}>
           {props.showAbstractFilters[props.day as keyof DayAbstractFilters] ? "Hide" : "Show"}
         </button>
       </div>
